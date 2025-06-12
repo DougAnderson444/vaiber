@@ -17,7 +17,9 @@ jobs:
         run: cargo binstall --no-confirm dioxus-cli
 
       - name: Build web app
-        run: dx build --release --package web
+        run:  |
+          cd web
+          dx bundle --out-dir docs
 
       - name: Deploy to GitHub Pages
         uses: DioxusLabs/deploy-action@0.1.2
