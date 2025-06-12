@@ -9,5 +9,20 @@ jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: "Dioxus Deploy"
+      - uses: actions/checkout@v3
+
+      - name: Install cargo-binstall
+        run: |
+          curl -L https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-gnu.gz | gunzip -c > ~/.cargo/bin/cargo-binstall
+          chmod +x ~/.cargo/bin/cargo-binstall
+
+      - name: Binstall dioxus-cli
+        run: cargo binstall --no-confirm dioxus-cli
+
+      - name: Build web app
+        run: dx build --release --package web
+
+      - name: Deploy to GitHub Pages
         uses: DioxusLabs/deploy-action@0.1.2
+        with:
+          public-dir: web/docs
