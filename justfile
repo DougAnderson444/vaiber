@@ -1,7 +1,7 @@
-build:
-  cd web
-  dx bundle --out-dir docs
-  mv docs/public/* docs
+build-web:
+  just web/build
+  mkdir -p docs
+  mv web/docs/public/* docs
   cp docs/index.html docs/404.html
   # Add and commit with git 
   git add docs
