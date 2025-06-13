@@ -1,4 +1,4 @@
-# vAIber
+# vaiber
 
 > Vector AI Blockstore'r
 

@@ -6,3 +6,9 @@ build-web:
   # Add and commit with git 
   git add docs
   git commit -m "Update docs" || true
+
+serve-web:
+  dx serve --package web --platform web
+
+css:
+  npx tailwindcss -i ./input.css -o ./ui/assets/tailwind.css --watch

@@ -1,11 +1,13 @@
 [workspace]
 resolver = "2"
-members = [
-    "ui",
-    "web",
-    "desktop",
-    "mobile",
-]
+members = ["ui", "web", "desktop", "mobile"]
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Doug Anderson <doug@peerpiper.io>"]
+edition = "2024"
+license = "MIT"
+homepage = "https://douganderson444.github.io/vaiber/"
 
 [workspace.dependencies]
 dioxus = { version = "0.6.0" }
@@ -24,4 +26,3 @@ inherits = "dev"
 
 [profile.android-dev]
 inherits = "dev"
-
