@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -17,11 +17,31 @@ jobs:
         run: cargo binstall --no-confirm dioxus-cli
 
       - name: Build web app
-        run:  |
+        run: |
           cd web
           dx bundle --out-dir docs
 
-      - name: Deploy to GitHub Pages
-        uses: DioxusLabs/deploy-action@0.1.2
+      - name: Copy files to root ./docs directory
+        run: |
+          mkdir -p docs
+          mv web/docs/public/* docs
+          cp docs/index.html docs/404.html
+          
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
         with:
-          public-dir: web/docs
+          path: ./docs
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
