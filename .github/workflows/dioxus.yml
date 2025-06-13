@@ -21,12 +21,10 @@ jobs:
         with:
           node-version: '18'
           
-      - uses: ./.github/actions/setup-tailwind
-        with:
-          version: 'v3.4.17'
-          
-      - name: Build CSS
-        run: tailwindcss -i ./input.css -o ./ui/assets/tailwind.css
+      - name: Install Tailwind CSS
+        run: |
+          npm install -g tailwindcss
+          tailwindcss -i ./input.css -o ./ui/assets/tailwind.css
 
       - name: Build web app
         run: |
