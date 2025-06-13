@@ -28,11 +28,11 @@ jobs:
           cp -r web/docs/public/* docs/
           cp docs/index.html docs/404.html
           
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload static files as artifact
+        id: deployment
+        uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action
         with:
-          name: github-pages
-          path: ./docs
+          path: docs/
 
   deploy:
     needs: build
@@ -48,6 +48,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: github-pages
+      
+      - uses: actions/configure-pages@v3
 
       - name: Deploy to GitHub Pages
         id: deployment
