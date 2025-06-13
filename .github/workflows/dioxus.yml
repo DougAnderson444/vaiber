@@ -28,7 +28,7 @@ jobs:
           cp docs/index.html docs/404.html
           
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           path: ./docs
 
@@ -42,6 +42,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
