@@ -17,15 +17,16 @@ jobs:
         run: cargo binstall --no-confirm dioxus-cli
         
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '18'
           
-      - name: Install Tailwind CSS
-        run: npm install -g tailwindcss
+      - uses: ./.github/actions/setup-tailwind
+        with:
+          version: 'v3.4.17'
           
       - name: Build CSS
-        run: npx tailwindcss -i ./input.css -o ./ui/assets/tailwind.css
+        run: tailwindcss -i ./input.css -o ./ui/assets/tailwind.css
 
       - name: Build web app
         run: |
