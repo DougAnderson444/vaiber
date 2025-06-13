@@ -23,13 +23,15 @@ jobs:
 
       - name: Copy files to root ./docs directory
         run: |
+          rm -rf docs
           mkdir -p docs
-          mv web/docs/public/* docs
+          cp -r web/docs/public/* docs/
           cp docs/index.html docs/404.html
           
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
+          name: docs
           path: ./docs
 
   deploy:
