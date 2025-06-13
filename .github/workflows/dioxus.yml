@@ -47,7 +47,7 @@ jobs:
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: docs
+          name: github-pages
 
       - name: Deploy to GitHub Pages
         id: deployment
