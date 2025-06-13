@@ -15,6 +15,17 @@ jobs:
 
       - name: Binstall dioxus-cli
         run: cargo binstall --no-confirm dioxus-cli
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          
+      - name: Install Tailwind CSS
+        run: npm install -g tailwindcss
+          
+      - name: Build CSS
+        run: npx tailwindcss -i ./input.css -o ./ui/assets/tailwind.css
 
       - name: Build web app
         run: |
@@ -30,7 +41,7 @@ jobs:
           
       - name: Upload static files as artifact
         id: deployment
-        uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs/
 
