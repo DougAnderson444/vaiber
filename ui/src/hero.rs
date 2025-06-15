@@ -14,7 +14,6 @@ pub fn Hero() -> Element {
             id: "hero",
             class: "text-green-500",
             div { id: "links",
-                a { href: "https://dioxuslabs.com/learn/0.6/", "Summer is cool" }
                 WalletComponent {  }
             }
         }

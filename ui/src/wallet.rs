@@ -1,9 +1,8 @@
 //! Username and password based wallet Dioxus component.
 use dioxus::prelude::*;
-use seed_keeper_core::credentials::{Credentials, Error, MinString, Wallet};
+use seed_keeper_core::credentials::{Credentials, MinString, Wallet};
 
 use crate::storage::StorageProvider;
-use crate::WalletStorage;
 
 const STORAGE_KEY: &str = "seed_keeper_encrypted_seed";
 const MIN_LENGTH: usize = 8;
@@ -21,10 +20,7 @@ pub fn WalletComponent() -> Element {
     // Try to load existing seed from storage
     let mut encrypted_seed = use_signal(|| {
         if storage.exists(STORAGE_KEY) {
-            match storage.load(STORAGE_KEY) {
-                Ok(seed) => Some(seed),
-                Err(_) => None,
-            }
+            storage.load(STORAGE_KEY).ok()
         } else {
             None
         }
@@ -33,20 +29,33 @@ pub fn WalletComponent() -> Element {
     let mut wallet_exists = use_signal(|| encrypted_seed().is_some());
     let mut is_loading_wallet = use_signal(|| false);
 
+    let mut inputs_valid = use_signal(|| false);
+
     // Handle username input change
     let handle_username_change = move |evt: Event<FormData>| {
         username.set(evt.value().clone());
+        inputs_valid.set(username().len() >= MIN_LENGTH && password().len() >= MIN_LENGTH);
     };
 
     // Handle password input change
     let handle_password_change = move |evt: Event<FormData>| {
         password.set(evt.value().clone());
+        inputs_valid.set(username().len() >= MIN_LENGTH && password().len() >= MIN_LENGTH);
     };
 
     // Create a new wallet
     let create_wallet = {
         let storage = storage.clone();
-        move |_| {
+        let error_message_clone = error_message;
+        let success_message_clone = success_message;
+        let encrypted_seed_clone = encrypted_seed;
+        let wallet_exists_clone = wallet_exists;
+        move || {
+            let mut error_message = error_message_clone;
+            let mut success_message = success_message_clone;
+            let mut encrypted_seed = encrypted_seed_clone;
+            let mut wallet_exists = wallet_exists_clone;
+
             error_message.set(String::new());
             success_message.set(String::new());
 
@@ -103,7 +112,7 @@ pub fn WalletComponent() -> Element {
     };
 
     // Load an existing wallet
-    let load_wallet = move |_| {
+    let mut load_wallet = move || {
         error_message.set(String::new());
         success_message.set(String::new());
         is_loading_wallet.set(true);
@@ -166,6 +175,17 @@ pub fn WalletComponent() -> Element {
         }
     };
 
+    let create_wallet_clone = create_wallet.clone();
+    let handle_keydown = move |evt: Event<KeyboardData>| {
+        if evt.key() == Key::Enter && inputs_valid() {
+            if wallet_exists() {
+                load_wallet();
+            } else {
+                create_wallet_clone();
+            }
+        }
+    };
+
     // Get formatted encrypted seed for display
     let formatted_seed = encrypted_seed()
         .as_ref()
@@ -209,7 +229,7 @@ pub fn WalletComponent() -> Element {
             button {
                 class: "w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition",
                 r#type: "button",
-                onclick: load_wallet,
+                onclick: move |_| load_wallet(),
                 disabled: is_loading_wallet(),
                 if is_loading_wallet() { "Loading Wallet..." } else { "Access Wallet" }
             }
@@ -217,10 +237,11 @@ pub fn WalletComponent() -> Element {
     } else {
         rsx! {
             button {
-                class: "w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition",
+                class: "w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition disabled:bg-gray-400",
                 r#type: "button",
-                onclick: create_wallet,
-                "Create New Wallet"
+                onclick: move |_| create_wallet(),
+                disabled: !inputs_valid(),
+                if inputs_valid() { "Create New Wallet" } else { "Use longer username/password" }
             }
         }
     };
@@ -251,6 +272,7 @@ pub fn WalletComponent() -> Element {
                         r#type: "text",
                         value: "{username}",
                         oninput: handle_username_change,
+                        onkeydown: handle_keydown.clone(),
                         placeholder: format!("Minimum {MIN_LENGTH} characters")
                     }
                 }
@@ -262,6 +284,7 @@ pub fn WalletComponent() -> Element {
                         r#type: "password",
                         value: "{password}",
                         oninput: handle_password_change,
+                        onkeydown: handle_keydown,
                         placeholder: format!("Minimum {MIN_LENGTH} characters")
                     }
                 }
@@ -271,13 +294,11 @@ pub fn WalletComponent() -> Element {
 
                 // Reset button (only show if wallet exists)
                 if wallet_exists() {
-                    rsx! {
-                        button {
-                            class: "w-full mt-2 bg-red-100 text-red-700 py-2 px-4 rounded-md hover:bg-red-200 transition",
-                            r#type: "button",
-                            onclick: reset_wallet,
-                            "Reset Wallet"
-                        }
+                    button {
+                        class: "w-full mt-2 bg-red-100 text-red-700 py-2 px-4 rounded-md hover:bg-red-200 transition",
+                        r#type: "button",
+                        onclick: reset_wallet,
+                        "Reset Wallet"
                     }
                 }
 

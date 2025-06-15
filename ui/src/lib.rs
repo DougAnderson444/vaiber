@@ -1,7 +1,7 @@
 //! This crate contains all shared UI for the workspace.
 
 mod storage;
-pub use storage::WalletStorage;
+pub use storage::{StorageProvider, WalletStorage};
 
 mod hero;
 pub use hero::Hero;
