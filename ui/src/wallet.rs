@@ -144,8 +144,9 @@ pub fn WalletComponent() -> Element {
 
                 // Try to load wallet with provided credentials
                 match Wallet::new(credentials) {
-                    Ok(_) => {
+                    Ok(wallet) => {
                         success_message.set("Wallet loaded successfully".to_string());
+                        wallet_signal.set(Some(wallet));
                     }
                     Err(err) => {
                         error_message.set(format!("Failed to load wallet: {err}. Please check your username and password."));
@@ -174,11 +175,20 @@ pub fn WalletComponent() -> Element {
             // Reset state
             encrypted_seed.set(None);
             wallet_exists.set(false);
+            wallet_signal.set(None);
             username.set(String::new());
             password.set(String::new());
             error_message.set(String::new());
             success_message.set("Wallet data cleared successfully".to_string());
         }
+    };
+
+    // Lock wallet (just clears the wallet_signal without deleting storage)
+    let lock_wallet = move |_| {
+        wallet_signal.set(None);
+        username.set(String::new());
+        password.set(String::new());
+        success_message.set("Wallet locked successfully".to_string());
     };
 
     let mut create_wallet_clone = create_wallet.clone();
@@ -252,6 +262,58 @@ pub fn WalletComponent() -> Element {
         }
     };
 
+    // New active wallet UI component
+    let active_wallet_ui = rsx! {
+        div {
+            class: "space-y-4",
+            div {
+                class: "p-4 bg-green-50 border border-green-200 rounded-lg",
+                div {
+                    class: "flex items-center justify-center mb-3",
+                    svg {
+                        class: "w-8 h-8 text-green-600",
+                        xmlns: "http://www.w3.org/2000/svg",
+                        view_box: "0 0 24 24",
+                        fill: "currentColor",
+                        path {
+                            d: "M7 8a3 3 0 100-6 3 3 0 000 6zm7-5h-4v2h4V3zm3 5h-4V6h4v2zm-4 8v7h4v-7h-4zm5-12h-4v2h4V4zm-4 16h4v-2h-4v2zM4 4v16h6v-2H6V6h4V4H4z"
+                        }
+                    }
+                }
+                h3 {
+                    class: "text-xl font-bold text-center text-green-800",
+                    "Wallet Active"
+                }
+                p {
+                    class: "text-center text-green-600 mt-2",
+                    "Your wallet is unlocked and ready to use"
+                }
+
+                div {
+                    class: "mt-4 flex items-center justify-center space-x-2",
+                    button {
+                        class: "bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition",
+                        r#type: "button",
+                        "View Key Details"
+                    }
+                    button {
+                        class: "bg-white border border-green-600 text-green-600 py-2 px-4 rounded-md hover:bg-green-50 transition",
+                        r#type: "button",
+                        onclick: lock_wallet,
+                        "Lock Wallet"
+                    }
+                }
+            }
+
+            // If wallet is accessible, still show the seed for reference
+            {seed_ui}
+
+            // Success message
+            {success_ui.clone()}
+        }
+    };
+
+    // Main container with conditional content based on wallet accessibility
     rsx! {
         div {
             id: "wallet",
@@ -259,10 +321,18 @@ pub fn WalletComponent() -> Element {
 
             div { class: "mb-6",
                 h2 { class: "text-2xl font-bold",
-                    if wallet_exists() { "Access Your Wallet" } else { "Create New Wallet" }
+                    if wallet_signal.read().is_some() {
+                        "Wallet Dashboard"
+                    } else if wallet_exists() {
+                        "Access Your Wallet"
+                    } else {
+                        "Create New Wallet"
+                    }
                 }
                 p { class: "text-gray-600",
-                    if wallet_exists() {
+                    if wallet_signal.read().is_some() {
+                        "Your secure wallet is ready to use"
+                    } else if wallet_exists() {
                         "Enter your username and password to access your wallet"
                     } else {
                         "Create a new secure wallet with a username and password using Argon2"
@@ -270,59 +340,61 @@ pub fn WalletComponent() -> Element {
                 }
             }
 
-            div { class: "space-y-4",
-                div { class: "space-y-2",
-                    label { class: "block text-sm font-medium text-gray-700", "Username" }
-                    input {
-                        class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500",
-                        r#type: "text",
-                        value: "{username}",
-                        oninput: handle_username_change,
-                        onkeydown: handle_keydown.clone(),
-                        placeholder: format!("Minimum {MIN_LENGTH} characters")
+            // Show different UI based on wallet signal
+            if wallet_signal.read().is_some() {
+                {active_wallet_ui}
+            } else {
+                div { class: "space-y-4",
+                    div { class: "space-y-2",
+                        label { class: "block text-sm font-medium text-gray-700", "Username" }
+                        input {
+                            class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500",
+                            r#type: "text",
+                            value: "{username}",
+                            oninput: handle_username_change,
+                            onkeydown: handle_keydown.clone(),
+                            placeholder: format!("Minimum {MIN_LENGTH} characters")
+                        }
                     }
+
+                    div { class: "space-y-2",
+                        label { class: "block text-sm font-medium text-gray-700", "Password" }
+                        input {
+                            class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500",
+                            r#type: "password",
+                            value: "{password}",
+                            oninput: handle_password_change,
+                            onkeydown: handle_keydown,
+                            placeholder: format!("Minimum {MIN_LENGTH} characters")
+                        }
+                    }
+
+                    // Main action button (create or access)
+                    {action_button}
+
+                    // Reset button (only show if wallet exists but not accessible)
+                    if wallet_exists() {
+                        button {
+                            class: "w-full mt-2 bg-red-100 text-red-700 py-2 px-4 rounded-md hover:bg-red-200 transition",
+                            r#type: "button",
+                            onclick: reset_wallet,
+                            "Reset Wallet"
+                        }
+                    }
+
+                    // Error message
+                    {error_ui}
+
+                    // Success message
+                    {success_ui}
                 }
+            }
 
-                div { class: "space-y-2",
-                    label { class: "block text-sm font-medium text-gray-700", "Password" }
-                    input {
-                        class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500",
-                        r#type: "password",
-                        value: "{password}",
-                        oninput: handle_password_change,
-                        onkeydown: handle_keydown,
-                        placeholder: format!("Minimum {MIN_LENGTH} characters")
-                    }
-                }
-
-                // Main action button (create or access)
-                {action_button}
-
-                // Reset button (only show if wallet exists)
-                if wallet_exists() {
-                    button {
-                        class: "w-full mt-2 bg-red-100 text-red-700 py-2 px-4 rounded-md hover:bg-red-200 transition",
-                        r#type: "button",
-                        onclick: reset_wallet,
-                        "Reset Wallet"
-                    }
-                }
-
-                // Error message
-                {error_ui}
-
-                // Success message
-                {success_ui}
-
-                // Encrypted seed display (if available)
-                {seed_ui}
-
-                div { id: "links", class: "mt-6 text-center text-sm text-gray-600",
-                    a {
-                        href: "#",
-                        class: "text-green-600 hover:underline",
-                        "Learn about wallet security"
-                    }
+            div { id: "links", class: "mt-6 text-center text-sm text-gray-600",
+                a {
+                    href: "#",
+                    class: "text-green-600 hover:underline",
+                    "Learn about wallet security"
                 }
             }
         }
