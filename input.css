@@ -4,7 +4,7 @@
 
 /* root styles */
 body {
-  @apply text-neutral-800;
+  @apply text-green-500;
 }
 
 input {

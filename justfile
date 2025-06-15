@@ -11,4 +11,4 @@ serve-web:
   dx serve --package web --platform web
 
 css:
-  npx tailwindcss -i ./input.css -o ./ui/assets/tailwind.css --watch
+  tailwindcss -i ./input.css -o ./ui/assets/tailwind.css --watch

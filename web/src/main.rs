@@ -1,3 +1,5 @@
+mod storage;
+
 use dioxus::prelude::*;
 
 use ui::Hero;
