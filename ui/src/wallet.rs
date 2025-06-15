@@ -16,6 +16,7 @@ pub fn WalletComponent() -> Element {
     let mut password = use_signal(String::new);
     let mut error_message = use_signal(String::new);
     let mut success_message = use_signal(String::new);
+    let mut wallet_signal = use_signal(|| None::<Wallet>);
 
     // Try to load existing seed from storage
     let mut encrypted_seed = use_signal(|| {
@@ -44,7 +45,7 @@ pub fn WalletComponent() -> Element {
     };
 
     // Create a new wallet
-    let create_wallet = {
+    let mut create_wallet = {
         let storage = storage.clone();
         let error_message_clone = error_message;
         let success_message_clone = success_message;
@@ -100,6 +101,11 @@ pub fn WalletComponent() -> Element {
                             wallet_exists.set(true);
                             success_message
                                 .set("Wallet created and saved successfully".to_string());
+                            wallet_signal.set(Some(wallet));
+
+                            // Clear inputs
+                            username.set(String::new());
+                            password.set(String::new());
                         }
                         Err(err) => error_message.set(format!("Error encrypting seed: {err}")),
                     },
@@ -175,7 +181,7 @@ pub fn WalletComponent() -> Element {
         }
     };
 
-    let create_wallet_clone = create_wallet.clone();
+    let mut create_wallet_clone = create_wallet.clone();
     let handle_keydown = move |evt: Event<KeyboardData>| {
         if evt.key() == Key::Enter && inputs_valid() {
             if wallet_exists() {
@@ -259,7 +265,7 @@ pub fn WalletComponent() -> Element {
                     if wallet_exists() {
                         "Enter your username and password to access your wallet"
                     } else {
-                        "Create a new secure wallet with a username and password"
+                        "Create a new secure wallet with a username and password using Argon2"
                     }
                 }
             }
