@@ -12,7 +12,7 @@ pub fn Hero() -> Element {
 
         div {
             id: "hero",
-            class: "text-green-500",
+            class: "text-green-500 font-mono",
             div { id: "links",
                 WalletComponent { content: rsx! { Peer { } } }
             }

@@ -4,7 +4,7 @@
 
 /* root styles */
 body {
-  @apply text-green-500;
+  @apply text-green-500 bg-neutral-900;
 }
 
 input {
@@ -29,5 +29,5 @@ h4 {
 
 /* spans get newlines  */
 span {
-  @apply p-1 border border-r-blue-300 rounded-md;
+  @apply p-1;
 }

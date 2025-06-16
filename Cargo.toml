@@ -12,7 +12,7 @@ homepage = "https://douganderson444.github.io/vaiber/"
 [workspace.dependencies]
 dioxus = { version = "0.6.0" }
 seed-keeper-core = { git = "https://github.com/DougAnderson444/seed-keeper" }
-# workspace
+base64 = "0.22.1"
 ui = { path = "ui" }
 
 [profile]

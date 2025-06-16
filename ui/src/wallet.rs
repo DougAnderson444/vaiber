@@ -7,6 +7,8 @@ use seed_keeper_core::credentials::{Credentials, MinString, Wallet};
 
 use crate::storage::StorageProvider;
 
+pub(crate) type KeyMan = InMemoryKeyManager<bs_peer::Error>;
+
 const PEERPIPER_P_SVG: Asset = asset!("/assets/p.svg");
 const STORAGE_KEY: &str = "seed_keeper_encrypted_seed";
 const MIN_LENGTH: usize = 8;
@@ -14,7 +16,7 @@ const MIN_LENGTH: usize = 8;
 #[component]
 pub fn WalletComponent(content: Element) -> Element {
     let storage = use_context::<StorageProvider>();
-    let mut key_manager_signal = use_signal(|| None::<InMemoryKeyManager<bs_wallets::Error>>);
+    let mut key_manager_signal = use_signal(|| None::<KeyMan>);
 
     // Provide Key Manager for children components
     // This allows child components to access the key manager
@@ -64,15 +66,14 @@ pub fn WalletComponent(content: Element) -> Element {
 
     let mut configure_key_manager = move |wallet: &Wallet| {
         // Create a new key manager
-        let key_manager = InMemoryKeyManager::<bs_wallets::Error>::default();
+        let key_manager = KeyMan::default();
 
         // Choose the crypto algorithm/codec (e.g., Ed25519)
         let codec = Codec::Ed25519Priv;
 
         // Generate the key from seed
-        let secret_key =
-            InMemoryKeyManager::<bs_wallets::Error>::generate_from_seed(&codec, wallet.seed())
-                .expect("Failed to generate key from seed");
+        let secret_key = KeyMan::generate_from_seed(&codec, wallet.seed())
+            .expect("Failed to generate key from seed");
 
         // Store the key with a path
         let key_path = bs::params::anykey::PubkeyParams::KEY_PATH;
@@ -269,12 +270,12 @@ pub fn WalletComponent(content: Element) -> Element {
     let seed_ui = formatted_seed.as_ref().map(|seed_str| {
         rsx! {
             div {
-                class: "mt-4 p-3 bg-gray-100 rounded-md",
-                h3 { class: "text-sm font-bold text-gray-700 mb-1", "Encrypted Seed" }
+                class: "my-4 p-3 bg-gray-100 rounded-md",
+                h4 { class: "text-sm font-bold text-gray-700 mb-1", "Encrypted Seed" }
                 p { class: "text-xs break-all text-gray-600", "{seed_str}" }
                 div {
-                    class: "mt-2 text-xs text-gray-500",
-                    "Store this encrypted seed securely to restore your wallet later"
+                    class: "my-2 text-xs text-gray-500",
+                    "Optionally backup this encrypted seed securely to restore your wallet"
                 }
             }
         }
@@ -312,10 +313,6 @@ pub fn WalletComponent(content: Element) -> Element {
                 div {
                     class: "flex items-center",
                     img { src: PEERPIPER_P_SVG, alt: "PeerPiper Logo", class: "w-6 h-6" }
-                    span {
-                        class: "ml-1 text-sm font-medium text-green-600",
-                        "Wallet Active"
-                    }
                 }
 
                 // Control buttons
@@ -369,6 +366,9 @@ pub fn WalletComponent(content: Element) -> Element {
                         }
                     }
 
+                    // Show seed info if available
+                    {seed_ui}
+
                     div { class: "space-y-4",
                         div { class: "space-y-2",
                             label { class: "block text-sm font-medium text-gray-700", "Username" }
@@ -403,7 +403,7 @@ pub fn WalletComponent(content: Element) -> Element {
                                 class: "w-full mt-2 bg-red-100 text-red-700 py-2 px-4 rounded-md hover:bg-red-200 transition",
                                 r#type: "button",
                                 onclick: reset_wallet,
-                                "Reset Wallet"
+                                "Delete Wallet"
                             }
                         }
 
@@ -413,8 +413,6 @@ pub fn WalletComponent(content: Element) -> Element {
                         // Success message
                         {success_ui}
 
-                        // Show seed info if available
-                        {seed_ui}
 
                         div { id: "links", class: "mt-6 text-center text-sm text-gray-600",
                             a {
