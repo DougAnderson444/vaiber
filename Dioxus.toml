@@ -1,4 +1,4 @@
 [application]
 
 [web.app]
-base_path = "vaiber"
+# base_path = "vaiber"
