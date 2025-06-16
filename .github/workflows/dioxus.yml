@@ -30,7 +30,7 @@ jobs:
       - name: Build web app
         run: |
           cd web
-          dx bundle --release --base-path="vaiber" --out-dir docs
+          dx bundle --release -- --base-path="vaiber" --out-dir docs
 
       - name: Copy files to root ./docs directory
         run: |
