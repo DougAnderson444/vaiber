@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 
-use crate::WalletComponent;
+use crate::{peer::Peer, WalletComponent};
 
-const HEADER_SVG: Asset = asset!("/assets/header.svg");
+const PEERPIPER_P_SVG: Asset = asset!("/assets/p.svg");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 #[component]
@@ -14,7 +14,7 @@ pub fn Hero() -> Element {
             id: "hero",
             class: "text-green-500",
             div { id: "links",
-                WalletComponent {  }
+                WalletComponent { content: rsx! { Peer { } } }
             }
         }
     }

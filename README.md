@@ -10,14 +10,7 @@ Imagine a world where you can enter in some simple text, connect with your frien
 
 ### Serving The App
 
-Navigate to the platform crate of your choice:
 ```bash
-cd web
-```
-
-and serve:
-
-```bash
-dx serve
+dx serve-web
 ```
 

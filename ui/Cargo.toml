@@ -6,3 +6,9 @@ edition = "2021"
 [dependencies]
 dioxus = { workspace = true }
 seed-keeper-core.workspace = true
+bs = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+# bs-wallets from https://github.com/cryptidtech/bs/tree/doug/bs-p2p 
+bs-wallets = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+# bs-peer = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+multicodec = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+provenance-log = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }

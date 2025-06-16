@@ -8,3 +8,5 @@ pub use hero::Hero;
 
 mod wallet;
 pub use wallet::WalletComponent;
+
+mod peer;

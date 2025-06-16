@@ -9,9 +9,11 @@ homepage.workspace = true
 [dependencies]
 dioxus = { workspace = true, features = [] }
 ui = { workspace = true }
-getrandom = { version = "0.2", features = ["js"] }
+getrandom = { version = "0.3", features = ["wasm_js"] }
+# We have netsed deps that use v0.2, so we need to ensure the feature is flagged here
+getrandom_v02 = { package = "getrandom", version = "0.2", features = ["js"] }
 gloo-storage = "0.3.0"
-web-sys = { version = "0.3.64", features = ["console"] }
+web-sys = { version = "0.3.64", features = ["console", "Window"] }
 wasm-bindgen = "0.2.87"
 base64 = "0.22.1"
 

@@ -8,7 +8,7 @@ build-web:
   git commit -m "Update docs" || true
 
 serve-web:
-  dx serve --package web --platform web
+  RUSTFLAGS='--cfg getrandom_backend="wasm_js"' dx serve --package web --platform web
 
 css:
   tailwindcss -i ./input.css -o ./ui/assets/tailwind.css --watch
