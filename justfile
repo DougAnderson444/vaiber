@@ -11,4 +11,9 @@ serve-web:
   RUSTFLAGS='--cfg getrandom_backend="wasm_js"' dx serve --package web --platform web
 
 css:
-  tailwindcss -i ./input.css -o ./ui/assets/tailwind.css --watch
+  tailwindcss -i ./input.css -o ./ui/assets/tailwind.css --watch &
+  tailwindcss -i ./input.css -o ./desktop/assets/tailwind.css --watch
+
+# Desktop Version 
+serve-desktop:
+  dx serve --package desktop --platform desktop
