@@ -32,16 +32,24 @@ pub fn WalletComponent() -> Element {
 
     let mut inputs_valid = use_signal(|| false);
 
+    let mut check_length = move || {
+        if username().len() >= MIN_LENGTH && password().len() >= MIN_LENGTH && !inputs_valid() {
+            inputs_valid.set(true);
+        } else if username().len() < MIN_LENGTH || password().len() < MIN_LENGTH && inputs_valid() {
+            inputs_valid.set(false);
+        }
+    };
+
     // Handle username input change
     let handle_username_change = move |evt: Event<FormData>| {
         username.set(evt.value().clone());
-        inputs_valid.set(username().len() >= MIN_LENGTH && password().len() >= MIN_LENGTH);
+        check_length();
     };
 
     // Handle password input change
     let handle_password_change = move |evt: Event<FormData>| {
         password.set(evt.value().clone());
-        inputs_valid.set(username().len() >= MIN_LENGTH && password().len() >= MIN_LENGTH);
+        check_length();
     };
 
     // Create a new wallet
