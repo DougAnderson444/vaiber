@@ -1,4 +1,4 @@
 serve:
-  dx serve
+  RUSTFLAGS='--cfg getrandom_backend="wasm_js"' dx serve
 build:
-  dx bundle --out-dir docs
+  RUSTFLAGS='--cfg getrandom_backend="wasm_js"' dx bundle --out-dir docs
