@@ -8615,6 +8615,7 @@ dependencies = [
  "bs-peer",
  "bs-wallets",
  "dioxus",
+ "libp2p",
  "multicodec",
  "provenance-log",
  "seed-keeper-core",

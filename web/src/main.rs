@@ -1,3 +1,4 @@
+//! WEB
 mod storage;
 
 use dioxus::prelude::*;

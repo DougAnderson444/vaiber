@@ -11,3 +11,4 @@ bs-wallets = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p"
 bs-peer = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
 multicodec = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
 provenance-log = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+libp2p = { version = "0.54.1" }
