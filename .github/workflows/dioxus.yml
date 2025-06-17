@@ -30,7 +30,7 @@ jobs:
       - name: Build web app
         run: |
           cd web
-          dx bundle --out-dir docs
+          RUSTFLAGS='--cfg getrandom_backend="wasm_js"' dx bundle --out-dir docs
 
       - name: Copy files to root ./docs directory
         run: |
