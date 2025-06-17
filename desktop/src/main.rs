@@ -1,4 +1,5 @@
 //! DESKTOP
+mod node;
 mod storage;
 
 use dioxus::prelude::*;
@@ -24,7 +25,7 @@ fn App() -> Element {
         // Global app resources
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
 
-        Hero {}
+        Hero { platform_content: rsx! { node::DektopNode { } } }
 
     }
 }

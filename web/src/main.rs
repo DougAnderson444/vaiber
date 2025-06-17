@@ -26,7 +26,7 @@ fn App() -> Element {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: MAIN_CSS }
 
-        Hero {}
+        Hero { platform_content: rsx! { } }
 
     }
 }

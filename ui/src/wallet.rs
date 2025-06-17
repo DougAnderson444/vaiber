@@ -14,7 +14,7 @@ const STORAGE_KEY: &str = "seed_keeper_encrypted_seed";
 const MIN_LENGTH: usize = 8;
 
 #[component]
-pub fn WalletComponent(content: Element) -> Element {
+pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
     let storage = use_context::<StorageProvider>();
     let mut key_manager_signal = use_signal(|| None::<KeyMan>);
 
@@ -344,6 +344,8 @@ pub fn WalletComponent(content: Element) -> Element {
                 div {
                     class: "w-full h-full",
                     {content}
+
+                    {platform_content}
                 }
             } else {
                 // When wallet is not loaded, show the login form
