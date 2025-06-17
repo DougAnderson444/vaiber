@@ -370,27 +370,35 @@ pub fn WalletComponent(content: Element) -> Element {
                     {seed_ui}
 
                     div { class: "space-y-4",
-                        div { class: "space-y-2",
-                            label { class: "block text-sm font-medium text-gray-700", "Username" }
-                            input {
-                                class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500",
-                                r#type: "text",
-                                value: "{username}",
-                                oninput: handle_username_change,
-                                onkeydown: handle_keydown.clone(),
-                                placeholder: format!("Minimum {MIN_LENGTH} characters")
+                        form {
+                            id: "login-form",
+                            div { class: "space-y-2",
+                                label { class: "block text-sm font-medium text-gray-700", for: "username", "Username" }
+                                input {
+                                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500",
+                                    r#type: "text",
+                                    name: "username",
+                                    id: "username",
+                                    autocomplete: "username",
+                                    value: "{username}",
+                                    oninput: handle_username_change,
+                                    placeholder: format!("Minimum {MIN_LENGTH} characters")
+                                }
                             }
-                        }
 
-                        div { class: "space-y-2",
-                            label { class: "block text-sm font-medium text-gray-700", "Password" }
-                            input {
-                                class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500",
-                                r#type: "password",
-                                value: "{password}",
-                                oninput: handle_password_change,
-                                onkeydown: handle_keydown,
-                                placeholder: format!("Minimum {MIN_LENGTH} characters")
+                            div { class: "space-y-2",
+                                label { class: "block text-sm font-medium text-gray-700", for: "password", "Password" }
+                                input {
+                                    class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500",
+                                    r#type: "password",
+                                    name: "password",
+                                    id: "password",
+                                    autocomplete: "current-password",
+                                    value: "{password}",
+                                    oninput: handle_password_change,
+                                    onkeydown: handle_keydown,
+                                    placeholder: format!("Minimum {MIN_LENGTH} characters")
+                                }
                             }
                         }
 
