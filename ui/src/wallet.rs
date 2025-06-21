@@ -40,32 +40,20 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
     let mut wallet_exists = use_signal(|| encrypted_seed().is_some());
     let mut is_loading_wallet = use_signal(|| false);
 
-    let mut inputs_valid = use_signal(|| false);
-
-    let mut check_length = move || {
-        tracing::info!("Checking input lengths");
-        if username.read().len() >= MIN_LENGTH
-            && password.read().len() >= MIN_LENGTH
-            && !inputs_valid()
-        {
-            inputs_valid.set(true);
-        } else if username.read().len() < MIN_LENGTH
-            || password.read().len() < MIN_LENGTH && inputs_valid()
-        {
-            inputs_valid.set(false);
-        }
-    };
+    let inputs_valid = use_memo(move || {
+        let username_valid = username().len() >= MIN_LENGTH;
+        let password_valid = password().len() >= MIN_LENGTH;
+        username_valid && password_valid
+    });
 
     // Handle username input change
     let handle_username_change = move |evt: Event<FormData>| {
         username.set(evt.value().clone());
-        check_length();
     };
 
     // Handle password input change
     let handle_password_change = move |evt: Event<FormData>| {
         password.set(evt.value().clone());
-        check_length();
     };
 
     // use wallet to configure key manager
