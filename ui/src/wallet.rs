@@ -54,7 +54,6 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
     };
 
     // use wallet to configure key manager
-
     let mut configure_key_manager = move |wallet: &Wallet| {
         // Create a new key manager
         let key_manager = KeyMan::default();
@@ -76,38 +75,94 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
         key_manager_signal.set(Some(key_manager));
     };
 
-    // Create a new wallet
-    let mut create_wallet = {
+    // Reset wallet data
+    let reset_wallet = {
         let storage = storage.clone();
-        let error_message_clone = error_message;
-        let success_message_clone = success_message;
-        let encrypted_seed_clone = encrypted_seed;
-        let wallet_exists_clone = wallet_exists;
-        move || {
-            let mut error_message = error_message_clone;
-            let mut success_message = success_message_clone;
-            let mut encrypted_seed = encrypted_seed_clone;
-            let mut wallet_exists = wallet_exists_clone;
+        move |_| {
+            // Clear storage
+            if let Err(err) = storage.delete(STORAGE_KEY) {
+                error_message.set(format!("Failed to clear wallet data: {err}"));
+                return;
+            }
 
+            // Reset state
+            encrypted_seed.set(None);
+            wallet_exists.set(false);
+            key_manager_signal.set(None);
+            username.set(String::new());
+            password.set(String::new());
             error_message.set(String::new());
-            success_message.set(String::new());
+            success_message.set("Wallet data cleared successfully".to_string());
+        }
+    };
 
-            // Validate inputs
-            if username().is_empty() || password().is_empty() {
-                error_message.set("Username and password cannot be empty".to_string());
-                return;
+    // Lock wallet (just clears the without deleting storage)
+    let lock_wallet = move |_| {
+        key_manager_signal.set(None);
+        username.set(String::new());
+        password.set(String::new());
+        success_message.set("Wallet locked successfully".to_string());
+    };
+
+    let handle_submit = move |_| {
+        tracing::debug!("Form submitted");
+
+        // Clear messages
+        error_message.set(String::new());
+        success_message.set(String::new());
+
+        // Validate inputs
+        if username().is_empty() || password().is_empty() {
+            error_message.set("Username and password cannot be empty".to_string());
+            return;
+        }
+
+        // Enforce minimum length
+        tracing::info!("Enforcing input lengths");
+        if username.read().len() < MIN_LENGTH || password.read().len() < MIN_LENGTH {
+            error_message.set(format!(
+                "Username and password must be at least {MIN_LENGTH} characters"
+            ));
+            return;
+        }
+
+        if wallet_exists() {
+            // Loading existing wallet
+            is_loading_wallet.set(true);
+
+            if let Some(stored_seed) = encrypted_seed() {
+                // Create credentials with existing encrypted seed
+                let username_result = MinString::new(&username());
+                let password_result = MinString::new(&password());
+
+                if let (Ok(username_min), Ok(password_min)) = (username_result, password_result) {
+                    let credentials = Credentials {
+                        username: username_min,
+                        password: password_min,
+                        encrypted_seed: Some(stored_seed),
+                    };
+
+                    // Try to load wallet with provided credentials
+                    match Wallet::new(credentials) {
+                        Ok(wallet) => {
+                            success_message.set("Wallet loaded successfully".to_string());
+                            configure_key_manager(&wallet);
+                        }
+                        Err(err) => {
+                            error_message.set(format!("Failed to load wallet: {err}. Please check your username and password."));
+                        }
+                    }
+                } else {
+                    error_message.set("Invalid username or password".to_string());
+                }
+            } else {
+                error_message
+                    .set("No encrypted seed found. Please create a wallet first.".to_string());
             }
 
-            // Enforce minimum length
-            tracing::info!("Enforcing input lengths");
-            if username.read().len() < MIN_LENGTH || password.read().len() < MIN_LENGTH {
-                error_message.set(format!(
-                    "Username and password must be at least {MIN_LENGTH} characters"
-                ));
-                return;
-            }
-
-            // Create credentials
+            is_loading_wallet.set(false);
+        } else {
+            // Creating new wallet
             let username_result = MinString::new(&username());
             let password_result = MinString::new(&password());
 
@@ -150,92 +205,6 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
         }
     };
 
-    // Load an existing wallet
-    let mut load_wallet = move || {
-        error_message.set(String::new());
-        success_message.set(String::new());
-        is_loading_wallet.set(true);
-
-        // Validate inputs
-        if username().is_empty() || password().is_empty() {
-            error_message.set("Username and password cannot be empty".to_string());
-            is_loading_wallet.set(false);
-            return;
-        }
-
-        if let Some(stored_seed) = encrypted_seed() {
-            // Create credentials with existing encrypted seed
-            let username_result = MinString::new(&username());
-            let password_result = MinString::new(&password());
-
-            if let (Ok(username_min), Ok(password_min)) = (username_result, password_result) {
-                let credentials = Credentials {
-                    username: username_min,
-                    password: password_min,
-                    encrypted_seed: Some(stored_seed),
-                };
-
-                // Try to load wallet with provided credentials
-                match Wallet::new(credentials) {
-                    Ok(wallet) => {
-                        success_message.set("Wallet loaded successfully".to_string());
-                        configure_key_manager(&wallet);
-                    }
-                    Err(err) => {
-                        error_message.set(format!("Failed to load wallet: {err}. Please check your username and password."));
-                    }
-                }
-            } else {
-                error_message.set("Invalid username or password".to_string());
-            }
-        } else {
-            error_message.set("No encrypted seed found. Please create a wallet first.".to_string());
-        }
-
-        is_loading_wallet.set(false);
-    };
-
-    // Reset wallet data
-    let reset_wallet = {
-        let storage = storage.clone();
-        move |_| {
-            // Clear storage
-            if let Err(err) = storage.delete(STORAGE_KEY) {
-                error_message.set(format!("Failed to clear wallet data: {err}"));
-                return;
-            }
-
-            // Reset state
-            encrypted_seed.set(None);
-            wallet_exists.set(false);
-            key_manager_signal.set(None);
-            username.set(String::new());
-            password.set(String::new());
-            error_message.set(String::new());
-            success_message.set("Wallet data cleared successfully".to_string());
-        }
-    };
-
-    // Lock wallet (just clears the without deleting storage)
-    let lock_wallet = move |_| {
-        key_manager_signal.set(None);
-        username.set(String::new());
-        password.set(String::new());
-        success_message.set("Wallet locked successfully".to_string());
-    };
-
-    let mut create_wallet_clone = create_wallet.clone();
-    let handle_keydown = move |evt: Event<KeyboardData>| {
-        tracing::debug!("Key pressed: {:?}", evt.key());
-        if evt.key() == Key::Enter && *inputs_valid.read() {
-            if wallet_exists() {
-                load_wallet();
-            } else {
-                create_wallet_clone();
-            }
-        }
-    };
-
     // Get formatted encrypted seed for display
     let formatted_seed = encrypted_seed()
         .as_ref()
@@ -273,28 +242,6 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
             }
         }
     });
-
-    let action_button = if wallet_exists() {
-        rsx! {
-            button {
-                class: "w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition",
-                r#type: "button",
-                onclick: move |_| load_wallet(),
-                disabled: is_loading_wallet(),
-                if is_loading_wallet() { "Loading Wallet..." } else { "Access Wallet" }
-            }
-        }
-    } else {
-        rsx! {
-            button {
-                class: "w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition disabled:bg-gray-400",
-                r#type: "button",
-                onclick: move |_| create_wallet(),
-                disabled: !(*inputs_valid.read()),
-                if *inputs_valid.read() { "Create New Wallet" } else { "Use longer username/password" }
-            }
-        }
-    };
 
     // New active wallet UI component
     let active_wallet_ui = rsx! {
@@ -367,6 +314,7 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
                     div { class: "space-y-4",
                         form {
                             id: "login-form",
+                            onsubmit: handle_submit,
                             div { class: "space-y-2",
                                 label { class: "block text-sm font-medium text-gray-700", for: "username", "Username" }
                                 input {
@@ -391,14 +339,27 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
                                     autocomplete: "current-password",
                                     value: "{password}",
                                     oninput: handle_password_change,
-                                    onkeydown: handle_keydown,
                                     placeholder: format!("Minimum {MIN_LENGTH} characters")
                                 }
                             }
-                        }
 
-                        // Main action button (create or access)
-                        {action_button}
+                            // Submit button inside the form
+                            button {
+                                class: "w-full mt-4 py-2 px-4 rounded-md transition",
+                                class: if wallet_exists() {
+                                    "bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-400"
+                                } else {
+                                    "bg-green-500 text-white hover:bg-green-600 disabled:bg-gray-400"
+                                },
+                                r#type: "submit",
+                                disabled: !(*inputs_valid.read()) || is_loading_wallet(),
+                                if wallet_exists() {
+                                    if is_loading_wallet() { "Loading Wallet..." } else { "Access Wallet" }
+                                } else {
+                                    if *inputs_valid.read() { "Create New Wallet" } else { "Use longer username/password" }
+                                }
+                            }
+                        }
 
                         // Reset button (only show if wallet exists but not accessible)
                         if wallet_exists() {
@@ -415,7 +376,6 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
 
                         // Success message
                         {success_ui}
-
 
                         div { id: "links", class: "mt-6 text-center text-sm text-gray-600",
                             a {
