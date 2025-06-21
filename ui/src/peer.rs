@@ -13,7 +13,7 @@ use provenance_log::Log;
 use crate::wallet::KeyMan;
 use crate::StorageProvider;
 
-const VLAD_STORAGE_KEY: &str = "vlad_storage_key";
+const VLAD_STORAGE_KEY: &str = "VLAD_STORAGE_KEY";
 
 #[component]
 pub fn Peer() -> Element {

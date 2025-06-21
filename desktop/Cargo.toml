@@ -9,6 +9,8 @@ homepage.workspace = true
 [dependencies]
 dioxus = { workspace = true, features = [] }
 ui = { workspace = true }
+directories.workspace = true
+thiserror.workspace = true
 
 [features]
 default = ["desktop"]

@@ -10,7 +10,7 @@ use crate::storage::StorageProvider;
 pub(crate) type KeyMan = InMemoryKeyManager<bs_peer::Error>;
 
 const PEERPIPER_P_SVG: Asset = asset!("/assets/p.svg");
-const STORAGE_KEY: &str = "seed_keeper_encrypted_seed";
+const STORAGE_KEY: &str = "SEED_KEEPER_ENCRYPTED_SEED";
 const MIN_LENGTH: usize = 8;
 
 #[component]

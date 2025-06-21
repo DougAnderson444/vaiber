@@ -38,5 +38,3 @@ impl StorageProvider {
         self.inner.exists(key)
     }
 }
-
-// Create a Dioxus context for the storage provider

@@ -1,6 +1,9 @@
 //! DESKTOP
+mod error;
 mod node;
 mod storage;
+
+use error::Error;
 
 use dioxus::prelude::*;
 
@@ -15,7 +18,7 @@ fn main() {
 #[component]
 fn App() -> Element {
     // Build cool things ✌️
-    let storage = storage::DesktopStorage;
+    let storage = storage::DesktopStorage::new().unwrap();
     let storage_provider = StorageProvider::new(storage);
 
     // provide storgae in context for all child elements
