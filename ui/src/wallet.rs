@@ -1,6 +1,6 @@
 //! Username and password based wallet Dioxus component.
 use bs_wallets::memory::InMemoryKeyManager;
-use dioxus::prelude::*;
+use dioxus::{logger::tracing, prelude::*};
 use multicodec::Codec;
 use provenance_log::{self as plog, key::key_paths::ValidatedKeyParams};
 use seed_keeper_core::credentials::{Credentials, MinString, Wallet};
@@ -43,9 +43,15 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
     let mut inputs_valid = use_signal(|| false);
 
     let mut check_length = move || {
-        if username().len() >= MIN_LENGTH && password().len() >= MIN_LENGTH && !inputs_valid() {
+        tracing::info!("Checking input lengths");
+        if username.read().len() >= MIN_LENGTH
+            && password.read().len() >= MIN_LENGTH
+            && !inputs_valid()
+        {
             inputs_valid.set(true);
-        } else if username().len() < MIN_LENGTH || password().len() < MIN_LENGTH && inputs_valid() {
+        } else if username.read().len() < MIN_LENGTH
+            || password.read().len() < MIN_LENGTH && inputs_valid()
+        {
             inputs_valid.set(false);
         }
     };
@@ -108,7 +114,8 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
             }
 
             // Enforce minimum length
-            if username().len() < MIN_LENGTH || password().len() < MIN_LENGTH {
+            tracing::info!("Enforcing input lengths");
+            if username.read().len() < MIN_LENGTH || password.read().len() < MIN_LENGTH {
                 error_message.set(format!(
                     "Username and password must be at least {MIN_LENGTH} characters"
                 ));
