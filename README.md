@@ -10,7 +10,14 @@ Imagine a world where you can enter in some simple text, connect with your frien
 
 ### Serving The App
 
+On the web, use [just command](https://just.systems/man/en/) to launch the web [recipe](./justfile):
+
 ```bash
-dx serve-web
+just serve-web
 ```
 
+On the desktop, use [just command](https://just.systems) to launch the desktop [recipe](./justfile):
+
+```bash
+just serve-desktop
+```
