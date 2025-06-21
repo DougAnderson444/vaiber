@@ -2,7 +2,7 @@
 use bs_wallets::memory::InMemoryKeyManager;
 use dioxus::{logger::tracing, prelude::*};
 use multicodec::Codec;
-use provenance_log::{self as plog, key::key_paths::ValidatedKeyParams};
+use provenance_log::key::key_paths::ValidatedKeyParams;
 use seed_keeper_core::credentials::{Credentials, MinString, Wallet};
 
 use crate::storage::StorageProvider;
@@ -40,11 +40,8 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
     let mut wallet_exists = use_signal(|| encrypted_seed().is_some());
     let mut is_loading_wallet = use_signal(|| false);
 
-    let inputs_valid = use_memo(move || {
-        let username_valid = username().len() >= MIN_LENGTH;
-        let password_valid = password().len() >= MIN_LENGTH;
-        username_valid && password_valid
-    });
+    let inputs_valid =
+        use_memo(move || username().len() >= MIN_LENGTH && password().len() >= MIN_LENGTH);
 
     // Handle username input change
     let handle_username_change = move |evt: Event<FormData>| {
@@ -229,7 +226,7 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
 
     let mut create_wallet_clone = create_wallet.clone();
     let handle_keydown = move |evt: Event<KeyboardData>| {
-        if evt.key() == Key::Enter && inputs_valid() {
+        if evt.key() == Key::Enter && *inputs_valid.read() {
             if wallet_exists() {
                 load_wallet();
             } else {
@@ -292,7 +289,7 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
                 class: "w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition disabled:bg-gray-400",
                 r#type: "button",
                 onclick: move |_| create_wallet(),
-                disabled: !inputs_valid(),
+                disabled: !(*inputs_valid.read()),
                 if inputs_valid() { "Create New Wallet" } else { "Use longer username/password" }
             }
         }
@@ -393,7 +390,7 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
                                     autocomplete: "current-password",
                                     value: "{password}",
                                     oninput: handle_password_change,
-                                    onkeydown: handle_keydown,
+                                    // onkeydown: handle_keydown,
                                     placeholder: format!("Minimum {MIN_LENGTH} characters")
                                 }
                             }
