@@ -226,6 +226,7 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
 
     let mut create_wallet_clone = create_wallet.clone();
     let handle_keydown = move |evt: Event<KeyboardData>| {
+        tracing::debug!("Key pressed: {:?}", evt.key());
         if evt.key() == Key::Enter && *inputs_valid.read() {
             if wallet_exists() {
                 load_wallet();
@@ -290,7 +291,7 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
                 r#type: "button",
                 onclick: move |_| create_wallet(),
                 disabled: !(*inputs_valid.read()),
-                if inputs_valid() { "Create New Wallet" } else { "Use longer username/password" }
+                if *inputs_valid.read() { "Create New Wallet" } else { "Use longer username/password" }
             }
         }
     };
@@ -390,7 +391,7 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
                                     autocomplete: "current-password",
                                     value: "{password}",
                                     oninput: handle_password_change,
-                                    // onkeydown: handle_keydown,
+                                    onkeydown: handle_keydown,
                                     placeholder: format!("Minimum {MIN_LENGTH} characters")
                                 }
                             }
