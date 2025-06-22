@@ -20,3 +20,11 @@ You can start your desktop app with the following command:
 ```bash
 dx serve
 ```
+
+# Bundle Release 
+
+You can bundle your desktop app for release with the following command:
+
+```bash
+just release
+```
