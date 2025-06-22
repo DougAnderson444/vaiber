@@ -10,11 +10,19 @@ Imagine a world where you can enter in some simple text, connect with your frien
 
 ### Serving The App
 
+First, launch the Tailwindcss build process to compile the styles:
+
+```bash
+just css
+```
+
 On the web, use [just command](https://just.systems/man/en/) to launch the web [recipe](./justfile):
 
 ```bash
 just serve-web
 ```
+
+then goto: http://localhost:8080/vaiber
 
 On the desktop, use [just command](https://just.systems) to launch the desktop [recipe](./justfile):
 
