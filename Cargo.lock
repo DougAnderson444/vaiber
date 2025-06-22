@@ -9062,7 +9062,6 @@ dependencies = [
  "getrandom 0.2.16",
  "getrandom 0.3.3",
  "gloo-storage",
- "tracing-subscriber",
  "ui",
  "wasm-bindgen",
  "web-sys",
