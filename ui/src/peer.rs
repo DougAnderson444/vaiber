@@ -81,14 +81,19 @@ pub fn Peer(platform_content: Element) -> Element {
             // Move the peer.events out by taking it from the Option
             let mut peer_events = peer.events.take().unwrap();
             spawn(async move {
-                match peer_events.next().await {
-                    Some(PublicEvent::ListenAddr { address, .. }) => {
-                        tracing::info!("Peer listening on: {}", address);
-                        // Update signal so it can be displayed in the UI
-                        peer_address.set(Some(address.to_string()));
-                    }
-                    _ => {
-                        // TODO: Other events
+                while let Some(event) = peer_events.next().await {
+                    match event {
+                        PublicEvent::ListenAddr { address, .. } => {
+                            tracing::info!("Peer listening on: {}", address);
+                            // Update signal so it can be displayed in the UI
+                            peer_address.set(Some(address.to_string()));
+                        }
+                        PublicEvent::NewConnection { peer } => {
+                            tracing::info!("New connection established with peer: {}", peer);
+                        }
+                        _ => {
+                            tracing::debug!("Received event: {:?}", event);
+                        }
                     }
                 }
             });
