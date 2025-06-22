@@ -1,4 +1,13 @@
 [application]
+name = "PeerPiper"
 
-[web.app]
-# base_path = "vaiber"
+[bundle]
+identifier = "io.peerpiper"
+publisher = "PeerPiper"
+icon = [
+  "ui/assets/128x128.png",
+  "ui/assets/p256x256.png",
+  "ui/assets/p256x256.icns",
+  "ui/assets/p256x256.ico",
+  "ui/assets/favicon.ico",
+]

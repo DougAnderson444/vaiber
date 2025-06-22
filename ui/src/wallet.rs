@@ -14,7 +14,7 @@ const STORAGE_KEY: &str = "SEED_KEEPER_ENCRYPTED_SEED";
 const MIN_LENGTH: usize = 8;
 
 #[component]
-pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
+pub fn WalletComponent(content: Element) -> Element {
     let storage = use_context::<StorageProvider>();
     let mut key_manager_signal = use_signal(|| None::<KeyMan>);
 
@@ -104,7 +104,7 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
         success_message.set("Wallet locked successfully".to_string());
     };
 
-    let handle_submit = move |_| {
+    let handle_submit = move |evt: FormEvent| {
         tracing::debug!("Form submitted");
 
         // Clear messages
@@ -269,7 +269,8 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
         }
     };
 
-    // Main container with conditional content based on wallet accessibility
+    // Main container with conditional content based on wallet accessibility.
+    // Always keeps as much loic outside of the rsx! macro as possible
     rsx! {
         div {
             id: "wallet",
@@ -285,7 +286,6 @@ pub fn WalletComponent(content: Element, platform_content: Element) -> Element {
                     class: "w-full h-full",
                     {content}
 
-                    {platform_content}
                 }
             } else {
                 // When wallet is not loaded, show the login form

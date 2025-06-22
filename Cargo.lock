@@ -832,7 +832,7 @@ dependencies = [
 [[package]]
 name = "bs"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "best-practices",
  "bon",
@@ -853,7 +853,7 @@ dependencies = [
 [[package]]
 name = "bs-p2p"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "beetswap",
  "blockstore",
@@ -880,7 +880,7 @@ dependencies = [
 [[package]]
 name = "bs-peer"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "anyhow",
  "blockstore",
@@ -913,7 +913,7 @@ dependencies = [
 [[package]]
 name = "bs-traits"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "thiserror 2.0.12",
 ]
@@ -921,7 +921,7 @@ dependencies = [
 [[package]]
 name = "bs-wallets"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "bs-traits",
  "multibase 1.0.0",
@@ -1229,7 +1229,7 @@ dependencies = [
 [[package]]
 name = "comrade"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "anyhow",
  "comrade-reference",
@@ -1250,7 +1250,7 @@ dependencies = [
 [[package]]
 name = "comrade-reference"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "multihash 1.0.0",
  "multikey",
@@ -5077,7 +5077,7 @@ dependencies = [
 [[package]]
 name = "multibase"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "base-x",
  "base256emoji",
@@ -5090,7 +5090,7 @@ dependencies = [
 [[package]]
 name = "multicid"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "multibase 1.0.0",
  "multicodec",
@@ -5111,7 +5111,7 @@ dependencies = [
 [[package]]
 name = "multicodec"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "convert_case 0.8.0",
  "csv",
@@ -5148,7 +5148,7 @@ dependencies = [
 [[package]]
 name = "multihash"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "blake2",
  "blake3",
@@ -5217,7 +5217,7 @@ dependencies = [
 [[package]]
 name = "multikey"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "bcrypt-pbkdf",
  "blsful",
@@ -5253,7 +5253,7 @@ dependencies = [
 [[package]]
 name = "multisig"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "blsful",
  "elliptic-curve",
@@ -5288,7 +5288,7 @@ dependencies = [
 [[package]]
 name = "multitrait"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "test-log",
  "thiserror 2.0.12",
@@ -5299,7 +5299,7 @@ dependencies = [
 [[package]]
 name = "multiutil"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "multibase 1.0.0",
  "multicodec",
@@ -6454,7 +6454,7 @@ dependencies = [
 [[package]]
 name = "provenance-log"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "bon",
  "comrade",
@@ -7031,7 +7031,7 @@ dependencies = [
 [[package]]
 name = "rng"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#54382bb70421ae501c4b79d1ac5f653ec88d92c9"
+source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#8adebf7b2a0102493da845754cd1fc523a8f1ec9"
 dependencies = [
  "rand 0.6.5",
  "rand 0.9.1",
@@ -9062,6 +9062,7 @@ dependencies = [
  "getrandom 0.2.16",
  "getrandom 0.3.3",
  "gloo-storage",
+ "tracing-subscriber",
  "ui",
  "wasm-bindgen",
  "web-sys",

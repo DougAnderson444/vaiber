@@ -1,0 +1,5 @@
+bundle:
+  dx bundle --features desktop --platform desktop --package-types "deb" --package-types "appimage"
+
+release:
+  dx bundle --features desktop --platform desktop --release --package-types "deb" --package-types "appimage"

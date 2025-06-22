@@ -1,0 +1,15 @@
+[application]
+name = "PeerPiper"
+
+[bundle]
+identifier = "io.peerpiper"
+publisher = "PeerPiper"
+icon = [
+  "assets/128x128.png",
+  "assets/p256x256.png",
+  "assets/p256x256.icns",
+  "assets/p256x256.ico",
+  "assets/favicon.ico",
+  "icons/icon.png",
+]
+icon_path = "icons/icon.ico"

@@ -38,7 +38,7 @@ pub fn PlogControls(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
 
     rsx! {
         div {
-            class: "p-8 w-full h-full flex flex-col items-center justify-center",
+            class: "w-full h-full flex flex-col items-center justify-center",
             h1 { "Plog Details" }
             p { "This is you Verifiable Long-Lived Address (VLAD). It will stay the same, even when you rotate keys. No blockchain required, it's all peer to peer." }
             div {

@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@source "./ui/src/**/*.{rs,html,css}";
 
 /* root styles */
 body {
