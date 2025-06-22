@@ -75,24 +75,33 @@ fn ConnectionsPanel(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
             Ok(addr) => {
                 // We need to use spawn here to avoid blocking the UI
                 spawn(async move {
-                    let result = match peer.read().as_ref() {
-                        Some(p) => {
-                            match p.network_client.as_ref() {
-                                Some(client) => {
-                                    // We need to clone to get around borrowing rules
-                                    let client_mut = client.clone();
-                                    match client_mut.dial(addr).await {
-                                        Ok(_) => "Connected successfully!",
-                                        Err(e) => &format!("Failed to connect: {}", e),
-                                    }
-                                }
-                                None => "Network client not initialized",
-                            }
-                        }
-                        None => "Peer not initialized",
+                    // Create a code block to scope the peer.read() so it's
+                    // not held acros await points
+                    let network_client = {
+                        let peer_guard = peer.read();
+
+                        let Some(peer_ref) = peer_guard.as_ref() else {
+                            connection_status.set(Some("Peer not initialized".to_string()));
+                            connecting.set(false);
+                            return;
+                        };
+
+                        let Some(network_client) = peer_ref.network_client.clone() else {
+                            connection_status
+                                .set(Some("Network client not initialized".to_string()));
+                            connecting.set(false);
+                            return;
+                        };
+
+                        network_client
                     };
 
-                    connection_status.set(Some(result.to_string()));
+                    let result = match network_client.dial(addr).await {
+                        Ok(_) => "Dialing peer...".to_string(),
+                        Err(e) => format!("Failed to dial: {}", e),
+                    };
+
+                    connection_status.set(Some(result));
                     connecting.set(false);
                 });
             }
