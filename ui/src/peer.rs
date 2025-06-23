@@ -24,8 +24,10 @@ pub fn Peer(platform_content: Element) -> Element {
     // use use_context_provider(|| use_signal(|| None::<InMemoryKeyManager<bs_wallets::Error>>));
     let key_manager = use_context::<Signal<Option<KeyMan>>>();
     let mut bs_peer_signal = use_signal(|| None::<DefaultBsPeer<KeyMan>>);
-    // Add a new signal to store the peer listening address
     let mut peer_address = use_signal(|| None::<String>);
+    let mut connected_peers = use_signal(|| Vec::<String>::new());
+
+    use_context_provider(|| connected_peers.clone());
 
     // assert that key manager is available, return a warning if not
     if key_manager().is_none() {
@@ -85,12 +87,23 @@ pub fn Peer(platform_content: Element) -> Element {
                     match event {
                         PublicEvent::ListenAddr { address, .. } => {
                             tracing::info!("Peer listening on: {}", address);
-                            // Update signal so it can be displayed in the UI
                             peer_address.set(Some(address.to_string()));
                         }
                         PublicEvent::NewConnection { peer } => {
                             tracing::info!("New connection established with peer: {}", peer);
+                            // Add the peer to our connected peers list
+                            connected_peers.write().push(peer.to_string());
                         }
+                        PublicEvent::ConnectionClosed { peer, cause } => {
+                            tracing::info!(
+                                "Connection closed with peer: {}, cause: {:?}",
+                                peer,
+                                cause
+                            );
+                            // Remove the peer from our connected peers list
+                            connected_peers.write().retain(|p| p != &peer.to_string());
+                        }
+
                         _ => {
                             tracing::debug!("Received event: {:?}", event);
                         }

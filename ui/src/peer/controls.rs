@@ -64,6 +64,8 @@ fn ConnectionsPanel(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
     let mut connection_status = use_signal(|| None::<String>);
     let mut connecting = use_signal(|| false);
 
+    let connected_peers = use_context::<Signal<Vec<String>>>();
+
     let handle_connect = move |_| {
         connecting.set(true);
         connection_status.set(None);
@@ -142,6 +144,22 @@ fn ConnectionsPanel(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
                 div {
                     class: "p-2 bg-gray-100 rounded mt-2",
                     "{status}"
+                }
+            }
+
+            div {
+                class: "mt-4",
+                h3 { class: "font-bold", "Active Connections" }
+                ul {
+                    class: "list-disc pl-5",
+                    {connected_peers().iter().map(|peer_id| {
+                        rsx! {
+                            li {
+                                key: "{peer_id}",
+                                span { class: "font-mono text-sm", "{peer_id}" }
+                            }
+                        }
+                    })}
                 }
             }
         }

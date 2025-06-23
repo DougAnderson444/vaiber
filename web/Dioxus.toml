@@ -2,6 +2,7 @@
 
 [web.app]
 base_path = "vaiber"
+title = "PeerPiper Vaiber"
 
 [bundle]
 identifier = "io.peerpiper"
