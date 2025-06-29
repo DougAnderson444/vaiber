@@ -6,9 +6,7 @@
 //!   clipboard button to copy the vlad to the clipboard.
 //!
 //! Platform agnostic, so doesnt contain tokio or other platform specific code.
-use std::collections::HashMap;
-
-use bs_peer::peer::{Client, DefaultBsPeer, ResolvedPlog, Resolver, ResolverExt};
+use bs_peer::peer::{Client, DefaultBsPeer, ResolvedPlog, ResolverExt};
 use bs_peer::utils::create_default_scripts;
 use dioxus::prelude::*;
 use libp2p::Multiaddr;
@@ -18,12 +16,6 @@ use crate::wallet::KeyMan;
 
 #[component]
 pub fn PlogControls(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
-    let creating_plog = use_signal(|| false);
-
-    let (lock_script, unlock_script) = create_default_scripts();
-    // if peer.plog is_none, we can create a plog using generate:
-    // peer.generate(&fixture.lock_script, &fixture.unlock_script).await;
-
     // should show peer.plog.vlad as string for FYI.
     let has_plog = move || {
         peer.read()
@@ -182,22 +174,22 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
     let mut peer_vlad_input = use_signal(String::new);
     let mut peer_list = use_signal(Vec::<PeerDetails>::new);
     let mut searching = use_signal(|| false);
-    let mut search_status = use_signal(|| None::<String>);
+    let mut search_status = use_signal(String::new);
 
     let handle_add_peer = move |_| {
         searching.set(true);
-        search_status.set(None);
+        search_status.set("Searching...".to_string());
 
         let vlad = peer_vlad_input();
         if vlad.trim().is_empty() {
-            search_status.set(Some("VLAD cannot be empty".to_string()));
+            search_status.set("VLAD cannot be empty".to_string());
             searching.set(false);
             return;
         }
 
         // Try to convert string to Vlad first
         let Ok(vlad_ty) = Vlad::try_from_str(&vlad) else {
-            search_status.set(Some("VLAD invalid".to_string()));
+            search_status.set("VLAD invalid".to_string());
             searching.set(false);
             return;
         };
@@ -211,15 +203,14 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
                 let peer_guard = peer.read();
 
                 let Some(peer_ref) = peer_guard.as_ref() else {
-                    search_status.set(Some("Search incomplete, peer not initialized".to_string()));
+                    search_status.set("Search incomplete, peer not initialized".to_string());
                     searching.set(false);
                     return;
                 };
 
                 let Some(network_client) = peer_ref.network_client.clone() else {
-                    search_status.set(Some(
-                        "Search incomplete, Network client not initialized".to_string(),
-                    ));
+                    search_status
+                        .set("Search incomplete, Network client not initialized".to_string());
                     searching.set(false);
                     return;
                 };
@@ -228,7 +219,7 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
             };
 
             let Ok(cid_bytes) = network_client.get_record(vlad_bytes).await else {
-                search_status.set(Some(format!("Could not find peer with VLAD: {}", vlad)));
+                search_status.set(format!("Could not find peer with VLAD: {}", vlad));
                 searching.set(false);
                 return;
             };
@@ -236,10 +227,10 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
             let head = match multicid::Cid::try_from(cid_bytes.as_slice()) {
                 Ok(head) => head,
                 Err(e) => {
-                    search_status.set(Some(format!(
+                    search_status.set(format!(
                         "Could not get VLAD: {}, Failed to resolve plog: {}",
                         vlad, e
-                    )));
+                    ));
                     searching.set(false);
                     return;
                 }
@@ -247,7 +238,7 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
 
             // Rebuild the plog from the head CID by resolving the Entries
             let Ok(rebuilt_plog) = network_client.resolve_plog(&head).await else {
-                search_status.set(Some(format!("Could not convert head of VLAD: {}", vlad)));
+                search_status.set(format!("Could not convert head of VLAD: {}", vlad));
                 searching.set(false);
                 return;
             };
@@ -259,7 +250,7 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
                 plog: Some(rebuilt_plog),
             });
 
-            search_status.set(Some(format!("Found and added peer: {}", vlad)));
+            search_status.set(format!("Found and added peer: {}", vlad));
             searching.set(false);
             peer_vlad_input.set("".to_string());
         });
@@ -274,7 +265,6 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
 
     // Get current state values outside of RSX
     let is_searching = *searching.read();
-    let current_status = search_status();
     let peers = peer_list.read().clone();
     let has_peers = !peers.is_empty();
 
@@ -285,12 +275,68 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
             li {
                 key: "{index}",
                 div {
-                    class: "flex justify-between items-center",
-                    span { class: "font-mono text-sm", "{plog_details.vlad}" }
-                    button {
-                        class: "text-red-500",
-                        onclick: move |_| remove_peer(index_clone),
-                        "Remove"
+                    class: "p-4 mb-4 border rounded-lg shadow-md break-all flex flex-col gap-2 bg-white", // Container styling
+                    div { // Vlad Row
+                        class: "flex items-center justify-between",
+                        div { // Vlad Label and Value
+                            class: "flex-1 flex flex-col mr-4 overflow-hidden", // Use overflow-hidden to prevent layout shifts
+                            span { class: "font-bold text-lg text-gray-800", "VLAD" }
+                            span { class: "font-mono text-sm text-gray-700 truncate", "{plog_details.vlad.to_string()}" } // Assuming Vlad implements Display
+                        }
+                        button { // Copy Button
+                            class: "p-1 px-2 border rounded hover:bg-gray-100 text-sm self-center flex-shrink-0",
+                            // Placeholder for clipboard functionality:
+                            // onclick: move |_| { /* copy to clipboard logic */ },
+                            "Copy"
+                        }
+                    }
+                    // Plog Details Section
+                    if let Some(plog) = &plog_details.plog {
+                        div {
+                            class: "mt-2 border-t pt-2 flex flex-col gap-1",
+                            h4 { class: "font-semibold text-base text-gray-800", "Plog Details" }
+                            // Displaying Plog entries. This part is a conceptual placeholder
+                            // as the exact structure of `ResolvedPlog` and its methods (e.g., `get_values()`)
+                            // are not fully defined here.
+                            //
+                            // Assuming `ResolvedPlog` has an `entries` field which is a `Vec<Entry>`,
+                            // and `Entry` has `key: String` and `value: String`.
+                            div {
+                                class: "text-sm text-gray-600",
+                                if plog.log.entries.is_empty() {
+                                    "No entries in Plog."
+                                } else {
+                                        span { "Plog contains {plog.log.entries.len()} entries." }
+                                        // Optionally display first few entries for brevity:
+                                        // This would look something like:
+                                        // {
+                                        //     plog.entries.iter().take(3).map(|entry| {
+                                        //         rsx! {
+                                        //             div {
+                                        //                 class: "ml-4 flex gap-1",
+                                        //                 span { class: "font-mono text-xs", "{entry.key}:" }
+                                        //                 span { class: "truncate", "{entry.value}" }
+                                        //             }
+                                        //         }
+                                        //     })
+                                        // }
+                                    }
+                            }
+                        }
+                    } else {
+                        div {
+                            class: "mt-2 text-sm text-gray-500",
+                            "No Plog available for this peer."
+                        }
+                    }
+                    // Remove Peer Button
+                    div {
+                        class: "mt-3 text-right",
+                        button {
+                            class: "p-1 px-2 border border-red-500 rounded text-red-500 hover:bg-red-100 text-sm",
+                            onclick: move |_| remove_peer(index_clone), // index_clone is captured from outer scope
+                            "Remove"
+                        }
                     }
                 }
             }
@@ -303,16 +349,6 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
     } else {
         "Add Peer"
     };
-
-    // State-dependent status message
-    let status_message = current_status.map(|status| {
-        rsx! {
-            div {
-                class: "p-2 bg-gray-100 rounded mt-2",
-                "{status}"
-            }
-        }
-    });
 
     // Peer list section
     let peer_list_section = if has_peers {
@@ -353,7 +389,11 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
                 }
             }
 
-            {status_message}
+            div {
+                class: "p-2 bg-gray-100 rounded mt-2",
+                "Search Status: {search_status()}"
+            }
+
             {peer_list_section}
         }
     }
