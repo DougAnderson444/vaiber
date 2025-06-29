@@ -58,8 +58,19 @@ fn ConnectionsPanel(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
     let mut multiaddr_input = use_signal(String::new);
     let mut connection_status = use_signal(|| None::<String>);
     let mut connecting = use_signal(|| false);
+    let mut dialed_peer_id = use_signal(|| None::<String>);
 
     let connected_peers = use_context::<Signal<Vec<String>>>();
+
+    use_effect(move || {
+        let dialed = dialed_peer_id.read().clone();
+        if let Some(dialed_id) = dialed {
+            if connected_peers.read().iter().any(|p| *p == dialed_id) {
+                connection_status.set(Some(format!("Connected to peer: {}", dialed_id)));
+                dialed_peer_id.set(None); // Reset for next connection
+            }
+        }
+    });
 
     let handle_connect = move |_| {
         connecting.set(true);
@@ -70,10 +81,27 @@ fn ConnectionsPanel(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
         // Validate the multiaddr before attempting to connect
         match addr_str.parse::<Multiaddr>() {
             Ok(addr) => {
+                let mut peer_id_str = None;
+                for protocol in addr.iter() {
+                    if let libp2p::core::multiaddr::Protocol::P2p(peer_id) = protocol {
+                        peer_id_str = Some(peer_id.to_string());
+                        break;
+                    }
+                }
+
+                if peer_id_str.is_none() {
+                    connection_status.set(Some(
+                        "Multiaddr must contain a peer ID (/p2p/...)".to_string(),
+                    ));
+                    connecting.set(false);
+                    return;
+                }
+                dialed_peer_id.set(peer_id_str);
+
                 // We need to use spawn here to avoid blocking the UI
                 spawn(async move {
                     // Create a code block to scope the peer.read() so it's
-                    // not held acros await points
+                    // not held across await points
                     let network_client = {
                         let peer_guard = peer.read();
 
@@ -174,22 +202,22 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
     let mut peer_vlad_input = use_signal(String::new);
     let mut peer_list = use_signal(Vec::<PeerDetails>::new);
     let mut searching = use_signal(|| false);
-    let mut search_status = use_signal(String::new);
+    let mut search_status = use_signal(|| None::<String>);
 
     let handle_add_peer = move |_| {
         searching.set(true);
-        search_status.set("Searching...".to_string());
+        search_status.set(Some("Searching...".to_string()));
 
         let vlad = peer_vlad_input();
         if vlad.trim().is_empty() {
-            search_status.set("VLAD cannot be empty".to_string());
+            search_status.set(Some("VLAD cannot be empty".to_string()));
             searching.set(false);
             return;
         }
 
         // Try to convert string to Vlad first
         let Ok(vlad_ty) = Vlad::try_from_str(&vlad) else {
-            search_status.set("VLAD invalid".to_string());
+            search_status.set(Some("VLAD invalid".to_string()));
             searching.set(false);
             return;
         };
@@ -203,14 +231,15 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
                 let peer_guard = peer.read();
 
                 let Some(peer_ref) = peer_guard.as_ref() else {
-                    search_status.set("Search incomplete, peer not initialized".to_string());
+                    search_status.set(Some("Search incomplete, peer not initialized".to_string()));
                     searching.set(false);
                     return;
                 };
 
                 let Some(network_client) = peer_ref.network_client.clone() else {
-                    search_status
-                        .set("Search incomplete, Network client not initialized".to_string());
+                    search_status.set(Some(
+                        "Search incomplete, Network client not initialized".to_string(),
+                    ));
                     searching.set(false);
                     return;
                 };
@@ -219,7 +248,7 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
             };
 
             let Ok(cid_bytes) = network_client.get_record(vlad_bytes).await else {
-                search_status.set(format!("Could not find peer with VLAD: {}", vlad));
+                search_status.set(Some(format!("Could not find peer with VLAD: {}", vlad)));
                 searching.set(false);
                 return;
             };
@@ -227,10 +256,10 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
             let head = match multicid::Cid::try_from(cid_bytes.as_slice()) {
                 Ok(head) => head,
                 Err(e) => {
-                    search_status.set(format!(
+                    search_status.set(Some(format!(
                         "Could not get VLAD: {}, Failed to resolve plog: {}",
                         vlad, e
-                    ));
+                    )));
                     searching.set(false);
                     return;
                 }
@@ -238,7 +267,7 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
 
             // Rebuild the plog from the head CID by resolving the Entries
             let Ok(rebuilt_plog) = network_client.resolve_plog(&head).await else {
-                search_status.set(format!("Could not convert head of VLAD: {}", vlad));
+                search_status.set(Some(format!("Could not convert head of VLAD: {}", vlad)));
                 searching.set(false);
                 return;
             };
@@ -250,7 +279,7 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
                 plog: Some(rebuilt_plog),
             });
 
-            search_status.set(format!("Found and added peer: {}", vlad));
+            search_status.set(Some(format!("Found and added peer: {}", vlad)));
             searching.set(false);
             peer_vlad_input.set("".to_string());
         });
@@ -389,9 +418,11 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
                 }
             }
 
-            div {
-                class: "p-2 bg-gray-100 rounded mt-2",
-                "Search Status: {search_status()}"
+            if let Some(status) = search_status() {
+                div {
+                    class: "p-2 bg-gray-100 rounded mt-2",
+                    "Search Status: {status}"
+                }
             }
 
             {peer_list_section}

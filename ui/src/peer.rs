@@ -78,6 +78,23 @@ pub fn Peer(platform_content: Element) -> Element {
                 }
             }
 
+            // We can't call async methods on a Signals directly,
+            // sicne the read would be held across await points,
+            // so we need to use a closure instead.
+            let peer_clone = peer.clone();
+            let update_dht = move || {
+                // Need to clone each time, becuase FnOnce consumes each time
+                let peer_clone_inner = peer_clone.clone();
+                // This function will be called to update the DHT with the plog
+                async move {
+                    if let Err(e) = peer_clone_inner.record_plog_to_dht().await {
+                        tracing::error!("Failed to publish records: {}", e);
+                        return;
+                    }
+                    tracing::info!("Plog records published to DHT successfully.");
+                }
+            };
+
             // Spawn a task to listen for peer.events
             // and handle them accordingly
             // Move the peer.events out by taking it from the Option
@@ -93,6 +110,10 @@ pub fn Peer(platform_content: Element) -> Element {
                             tracing::info!("New connection established with peer: {}", peer);
                             // Add the peer to our connected peers list
                             connected_peers.write().push(peer.to_string());
+
+                            // When we get a new connection, we should re-publish records on the
+                            // DHT so that the newly connected peer gets DHT updates pronto.
+                            update_dht().await;
                         }
                         PublicEvent::ConnectionClosed { peer, cause } => {
                             tracing::info!(
