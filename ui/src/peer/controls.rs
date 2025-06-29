@@ -6,10 +6,13 @@
 //!   clipboard button to copy the vlad to the clipboard.
 //!
 //! Platform agnostic, so doesnt contain tokio or other platform specific code.
-use bs_peer::peer::DefaultBsPeer;
+use std::collections::HashMap;
+
+use bs_peer::peer::{Client, DefaultBsPeer, ResolvedPlog, Resolver, ResolverExt};
 use bs_peer::utils::create_default_scripts;
 use dioxus::prelude::*;
 use libp2p::Multiaddr;
+use multicid::Vlad;
 
 use crate::wallet::KeyMan;
 
@@ -168,9 +171,16 @@ fn ConnectionsPanel(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
 
 #[component]
 fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
+    // simple sturct to hold Vlad and Plog details
+    #[derive(Clone, Debug)]
+    struct PeerDetails {
+        vlad: Vlad,
+        plog: Option<ResolvedPlog>,
+    }
+
     // Signals are always mutable
     let mut peer_vlad_input = use_signal(String::new);
-    let mut peer_list = use_signal(Vec::<String>::new);
+    let mut peer_list = use_signal(Vec::<PeerDetails>::new);
     let mut searching = use_signal(|| false);
     let mut search_status = use_signal(|| None::<String>);
 
@@ -185,18 +195,71 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
             return;
         }
 
+        // Try to convert string to Vlad first
+        let Ok(vlad_ty) = Vlad::try_from_str(&vlad) else {
+            search_status.set(Some("VLAD invalid".to_string()));
+            searching.set(false);
+            return;
+        };
+
+        let vlad_bytes: Vec<u8> = vlad_ty.clone().into();
+
         // Add peer searching logic here
         spawn(async move {
-            // This would be a call to find a peer by VLAD
-            // For now, just simulating the functionality
+            // Look up Vlad in DHT, if found, get Plog record and show values (plog.get_values())
+            let network_client = {
+                let peer_guard = peer.read();
 
-            if vlad.starts_with("vlad") || vlad.starts_with("v1:") {
-                peer_list.write().push(vlad.clone());
-                search_status.set(Some(format!("Found and added peer: {}", vlad)));
-            } else {
+                let Some(peer_ref) = peer_guard.as_ref() else {
+                    search_status.set(Some("Search incomplete, peer not initialized".to_string()));
+                    searching.set(false);
+                    return;
+                };
+
+                let Some(network_client) = peer_ref.network_client.clone() else {
+                    search_status.set(Some(
+                        "Search incomplete, Network client not initialized".to_string(),
+                    ));
+                    searching.set(false);
+                    return;
+                };
+
+                network_client
+            };
+
+            let Ok(cid_bytes) = network_client.get_record(vlad_bytes).await else {
                 search_status.set(Some(format!("Could not find peer with VLAD: {}", vlad)));
-            }
+                searching.set(false);
+                return;
+            };
 
+            let head = match multicid::Cid::try_from(cid_bytes.as_slice()) {
+                Ok(head) => head,
+                Err(e) => {
+                    search_status.set(Some(format!(
+                        "Could not get VLAD: {}, Failed to resolve plog: {}",
+                        vlad, e
+                    )));
+                    searching.set(false);
+                    return;
+                }
+            };
+
+            // Rebuild the plog from the head CID by resolving the Entries
+            let Ok(rebuilt_plog) = network_client.resolve_plog(&head).await else {
+                search_status.set(Some(format!("Could not convert head of VLAD: {}", vlad)));
+                searching.set(false);
+                return;
+            };
+
+            // Add the peer details to the list
+            let mut list = peer_list.write();
+            list.push(PeerDetails {
+                vlad: vlad_ty,
+                plog: Some(rebuilt_plog),
+            });
+
+            search_status.set(Some(format!("Found and added peer: {}", vlad)));
             searching.set(false);
             peer_vlad_input.set("".to_string());
         });
@@ -216,14 +279,14 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
     let has_peers = !peers.is_empty();
 
     // Build peer list items outside of RSX
-    let peer_items = peers.iter().enumerate().map(|(index, vlad)| {
+    let peer_items = peers.iter().enumerate().map(|(index, plog_details)| {
         let index_clone = index;
         rsx! {
             li {
                 key: "{index}",
                 div {
                     class: "flex justify-between items-center",
-                    span { class: "font-mono text-sm", "{vlad}" }
+                    span { class: "font-mono text-sm", "{plog_details.vlad}" }
                     button {
                         class: "text-red-500",
                         onclick: move |_| remove_peer(index_clone),
@@ -294,4 +357,29 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
             {peer_list_section}
         }
     }
+}
+
+// Helper function
+// Create a code block to scope the peer.read() so it's
+// not held acros await points
+fn network_client_clone(
+    peer: Signal<Option<DefaultBsPeer<KeyMan>>>,
+    mut connection_status: Signal<Option<String>>,
+    mut connecting: Signal<bool>,
+) -> Option<Client> {
+    let peer_guard = peer.read();
+
+    let Some(peer_ref) = peer_guard.as_ref() else {
+        connection_status.set(Some("Peer not initialized".to_string()));
+        connecting.set(false);
+        return None;
+    };
+
+    let Some(network_client) = peer_ref.network_client.clone() else {
+        connection_status.set(Some("Network client not initialized".to_string()));
+        connecting.set(false);
+        return None;
+    };
+
+    Some(network_client)
 }
