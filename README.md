@@ -1,12 +1,13 @@
 # vaiber
 
-> Vector AI Blockstore'r
+> p2p identity. No blockchains, no fees. Just cryptographic secure identity and search.
 
-Imagine a world where you can enter in some simple text, connect with your friends and favorite businesses, and search amongst everyone's details and get the best results. vAIber is a platform that allows you to do just that, with the added benefit of being completely open source, decentralized and self-hostable.
+Imagine a world where you can find data and people even when thei contact data chnages. Connect with your friends once and for all. Forever be connected, rotate and recover your identity, and never lose contact with your friends.
 
-- Enter and search over text... even in the browser! 
-- Connect to anyone using a Verifiable Long-Lived Address (VLAD), which stays the same even if you rotate your keys 
-- Search for stuff without even needing to download all their data... just the index!
+- Create a Verifiable Long-lived Address (Vlad) and add details to your Plog... like a decentralized link-in-bio.
+- Connect to anyone else'sVerifiable Long-Lived Address (VLAD), which stays the same even if they rotate their keys 
+- [TODO] Search for stuff without even needing to download all their data... just the index!
+- [TODO] Social recovery if you lose your main key
 
 ### Serving The App
 
@@ -19,13 +20,13 @@ just css
 On the web, use [just command](https://just.systems/man/en/) to launch the web [recipe](./justfile):
 
 ```bash
-just serve-web
+just serve-desktop
 ```
 
-then goto: http://localhost:8080/vaiber
 
-On the desktop, use [just command](https://just.systems) to launch the desktop [recipe](./justfile):
+To launch a second node on the same machine, use [just command](https://just.systems) to launch [recipe](./justfile):
 
 ```bash
-just serve-desktop
+just serve-second-desktop
+```
 ```
