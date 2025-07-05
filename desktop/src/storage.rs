@@ -13,7 +13,14 @@ pub struct DesktopStorage {
 impl DesktopStorage {
     /// Creates a new instance of `DesktopStorage`, initializing the data directory.
     pub fn new() -> Result<Self, Error> {
-        let project_dirs = ProjectDirs::from("io", "peerpiper", "vaiber")
+        // If we run two apps at the same time, we need to use different directories
+        // so that they don't interfere with each others' identities.
+        let suffix = if std::env::var("DIOXUS_IDENTITY").is_ok() {
+            "-second-app"
+        } else {
+            ""
+        };
+        let project_dirs = ProjectDirs::from("io", "peerpiper", &format!("vaiber{}", suffix))
             .ok_or(Error::StorageFailure("Failed to get project directories"))?;
 
         let data_dir = project_dirs.data_dir().to_path_buf();
@@ -21,6 +28,11 @@ impl DesktopStorage {
         std::fs::create_dir_all(&data_dir)?;
 
         Ok(Self { data_dir })
+    }
+
+    /// Returns the directory where the wallet data is stored.
+    pub fn dir(&self) -> PathBuf {
+        self.data_dir.clone()
     }
 }
 

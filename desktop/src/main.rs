@@ -28,7 +28,7 @@ fn main() {
 fn App() -> Element {
     // Build cool things ✌️
     let storage = storage::DesktopStorage::new().unwrap();
-    let storage_provider = StorageProvider::new(storage);
+    let storage_provider = StorageProvider::new(storage.clone());
 
     // provide storage in context for all child elements
     use_context_provider(|| storage_provider);
@@ -37,6 +37,6 @@ fn App() -> Element {
         // Global app resources
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
 
-        Hero { platform_content: rsx! { node::DektopNode { } } }
+        Hero { platform_content: rsx! { node::DektopNode { } }, base_path: storage.dir() }
     }
 }

@@ -16,6 +16,13 @@ base64 = "0.22.1"
 ui = { path = "ui" }
 directories = "6.0.0"
 thiserror = "2.0"
+bs = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+bs-wallets = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+bs-peer = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+bs-p2p = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+multicid = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+multicodec = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+provenance-log = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
 
 [profile]
 
@@ -28,3 +35,12 @@ inherits = "dev"
 
 [profile.android-dev]
 inherits = "dev"
+
+[patch.'https://github.com/cryptidtech/bs.git']
+bs = { path = "../../clones/bs/crates/bs" }
+bs-wallets = { path = "../../clones/bs/crates/bs-wallets/" }
+bs-peer = { path = "../../clones/bs/crates/bs-peer/" }
+bs-p2p = { path = "../../clones/bs/crates/bs-p2p/" }
+multicid = { path = "../../clones/bs/crates/multicid/" }
+multicodec = { path = "../../clones/bs/crates/multicodec/" }
+provenance-log = { path = "../../clones/bs/crates/provenance-log/" }

@@ -7,3 +7,4 @@
 **/*.rs.bk
 ui/assets/tailwind.css
 desktop/assets/tailwind.css
+node_modules

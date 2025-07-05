@@ -3,7 +3,10 @@ use bs_wallets::memory::InMemoryKeyManager;
 use dioxus::{logger::tracing, prelude::*};
 use multicodec::Codec;
 use provenance_log::key::key_paths::ValidatedKeyParams;
-use seed_keeper_core::credentials::{Credentials, MinString, Wallet};
+use seed_keeper_core::{
+    credentials::{Credentials, MinString, Wallet},
+    seed::rand_seed,
+};
 
 use crate::storage::StorageProvider;
 
@@ -16,7 +19,23 @@ const MIN_LENGTH: usize = 8;
 #[component]
 pub fn WalletComponent(content: Element) -> Element {
     let storage = use_context::<StorageProvider>();
-    let mut key_manager_signal = use_signal(|| None::<KeyMan>);
+    let mut key_manager_signal = use_signal(|| {
+        if cfg!(feature = "dev") {
+            let codec = Codec::Ed25519Priv;
+
+            let key_manager = KeyMan::default();
+            let secret_key = KeyMan::generate_from_seed(&codec, &*rand_seed())
+                .expect("Failed to generate key from seed");
+
+            let key_path = bs::params::anykey::PubkeyParams::KEY_PATH;
+            key_manager
+                .store_secret_key(key_path.into(), secret_key)
+                .expect("Failed to store key");
+            Some(key_manager)
+        } else {
+            None::<KeyMan>
+        }
+    });
 
     // Provide Key Manager for children components
     // This allows child components to access the key manager

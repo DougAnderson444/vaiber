@@ -298,9 +298,9 @@ dependencies = [
 
 [[package]]
 name = "async-channel"
-version = "2.3.1"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89b47800b0be77592da0afd425cc03468052844aff33b84e33cc696f64e77b6a"
+checksum = "16c74e56284d2188cabb6ad99603d1ace887a5d7e7b695d01b728155ed9ed427"
 dependencies = [
  "concurrent-queue",
  "event-listener-strategy",
@@ -832,7 +832,6 @@ dependencies = [
 [[package]]
 name = "bs"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "best-practices",
  "bon",
@@ -853,7 +852,6 @@ dependencies = [
 [[package]]
 name = "bs-p2p"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "beetswap",
  "blockstore",
@@ -875,6 +873,8 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "wasm-bindgen-futures",
+ "web-sys",
  "web-time",
  "zeroize",
 ]
@@ -882,7 +882,6 @@ dependencies = [
 [[package]]
 name = "bs-peer"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "anyhow",
  "blockstore",
@@ -915,7 +914,6 @@ dependencies = [
 [[package]]
 name = "bs-traits"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "thiserror 2.0.12",
 ]
@@ -923,7 +921,6 @@ dependencies = [
 [[package]]
 name = "bs-wallets"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "bs-traits",
  "multibase 1.0.0",
@@ -1012,9 +1009,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.27"
+version = "1.2.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d487aa071b5f64da6f19a3e848e3578944b726ee5a4854b82172f02aa876bfdc"
+checksum = "4ad45f4f74e4e20eaa392913b7b33a7091c87e59628f4dd27888205ad888843c"
 dependencies = [
  "shlex",
 ]
@@ -1231,7 +1228,6 @@ dependencies = [
 [[package]]
 name = "comrade"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "anyhow",
  "comrade-reference",
@@ -1252,7 +1248,6 @@ dependencies = [
 [[package]]
 name = "comrade-reference"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "multihash 1.0.0",
  "multikey",
@@ -3790,6 +3785,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "io-uring"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b86e202f00093dcba4275d4636b93ef9dd75d025ae560d2521b45ea28ab49013"
+dependencies = [
+ "bitflags 2.9.1",
+ "cfg-if",
+ "libc",
+]
+
+[[package]]
 name = "ipconfig"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5079,7 +5085,6 @@ dependencies = [
 [[package]]
 name = "multibase"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "base-x",
  "base256emoji",
@@ -5092,7 +5097,6 @@ dependencies = [
 [[package]]
 name = "multicid"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "multibase 1.0.0",
  "multicodec",
@@ -5113,7 +5117,6 @@ dependencies = [
 [[package]]
 name = "multicodec"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "convert_case 0.8.0",
  "csv",
@@ -5150,7 +5153,6 @@ dependencies = [
 [[package]]
 name = "multihash"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "blake2",
  "blake3",
@@ -5219,7 +5221,6 @@ dependencies = [
 [[package]]
 name = "multikey"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "bcrypt-pbkdf",
  "blsful",
@@ -5255,7 +5256,6 @@ dependencies = [
 [[package]]
 name = "multisig"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "blsful",
  "elliptic-curve",
@@ -5290,7 +5290,6 @@ dependencies = [
 [[package]]
 name = "multitrait"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "test-log",
  "thiserror 2.0.12",
@@ -5301,7 +5300,6 @@ dependencies = [
 [[package]]
 name = "multiutil"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "multibase 1.0.0",
  "multicodec",
@@ -6457,9 +6455,9 @@ dependencies = [
 [[package]]
 name = "provenance-log"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "bon",
+ "bs-traits",
  "comrade",
  "multibase 1.0.0",
  "multicid",
@@ -6920,9 +6918,9 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "reqwest"
-version = "0.12.20"
+version = "0.12.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eabf4c97d9130e2bf606614eb937e86edac8292eaa6f422f995d7e8de1eb1813"
+checksum = "cbc931937e6ca3a06e3b6c0aa7841849b160a90351d6ab467a8b9b9959767531"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -7034,7 +7032,6 @@ dependencies = [
 [[package]]
 name = "rng"
 version = "1.0.0"
-source = "git+https://github.com/cryptidtech/bs?branch=doug%2Fbs-p2p#28422aa18f6a3a6201c6fc1404017ba0d8209c74"
 dependencies = [
  "rand 0.6.5",
  "rand 0.9.1",
@@ -8137,9 +8134,9 @@ dependencies = [
 
 [[package]]
 name = "test-log"
-version = "0.2.17"
+version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7f46083d221181166e5b6f6b1e5f1d499f3a76888826e6cb1d057554157cd0f"
+checksum = "1e33b98a582ea0be1168eba097538ee8dd4bbe0f2b01b22ac92ea30054e5be7b"
 dependencies = [
  "env_logger",
  "test-log-macros",
@@ -8148,9 +8145,9 @@ dependencies = [
 
 [[package]]
 name = "test-log-macros"
-version = "0.2.17"
+version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "888d0c3c6db53c0fdab160d2ed5e12ba745383d3e85813f2ea0f2b1475ab553f"
+checksum = "451b374529930d7601b1eef8d32bc79ae870b6079b069401709c2a8bf9e75f36"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -8309,17 +8306,19 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.45.1"
+version = "1.46.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75ef51a33ef1da925cea3e4eb122833cb377c61439ca401b770f54902b806779"
+checksum = "0cc3a2344dafbe23a245241fe8b09735b521110d30fcefbbd5feb1797ca35d17"
 dependencies = [
  "backtrace",
  "bytes",
+ "io-uring",
  "libc",
  "mio",
  "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
+ "slab",
  "socket2",
  "tokio-macros",
  "tracing",
@@ -8618,14 +8617,19 @@ name = "ui"
 version = "0.1.0"
 dependencies = [
  "bs",
+ "bs-p2p",
  "bs-peer",
  "bs-wallets",
  "dioxus",
+ "futures",
  "libp2p",
  "multicid",
  "multicodec",
  "provenance-log",
  "seed-keeper-core",
+ "tokio",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

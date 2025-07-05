@@ -6,10 +6,22 @@ edition = "2021"
 [dependencies]
 dioxus = { workspace = true }
 seed-keeper-core.workspace = true
-bs = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
-bs-wallets = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
-bs-peer = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
-multicid = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
-multicodec = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
-provenance-log = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+bs.workspace = true
+bs-wallets.workspace = true
+bs-peer.workspace = true
+bs-p2p.workspace = true
+multicid.workspace = true
+multicodec.workspace = true
+provenance-log.workspace = true
 libp2p = { version = "0.54.1" }
+tokio = { version = "1", features = ["sync"] }
+futures = "0.3.31"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = "0.3.64"
+wasm-bindgen-futures = "0.4.50"
+
+# use the dev feature when building for development 
+[features]
+default = ["dev"]
+dev = []
