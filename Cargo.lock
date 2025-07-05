@@ -8626,6 +8626,7 @@ dependencies = [
  "libp2p",
  "multicid",
  "multicodec",
+ "multikey",
  "provenance-log",
  "seed-keeper-core",
  "tokio",

@@ -22,6 +22,7 @@ bs-peer = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
 bs-p2p = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
 multicid = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
 multicodec = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
+multikey = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
 provenance-log = { git = "https://github.com/cryptidtech/bs", branch = "doug/bs-p2p" }
 
 [profile]
@@ -43,4 +44,5 @@ bs-peer = { path = "../../clones/bs/crates/bs-peer/" }
 bs-p2p = { path = "../../clones/bs/crates/bs-p2p/" }
 multicid = { path = "../../clones/bs/crates/multicid/" }
 multicodec = { path = "../../clones/bs/crates/multicodec/" }
+multikey = { path = "../../clones/bs/crates/multikey/" }
 provenance-log = { path = "../../clones/bs/crates/provenance-log/" }

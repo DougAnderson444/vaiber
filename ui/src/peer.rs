@@ -14,10 +14,12 @@ use dioxus::prelude::*;
 use libp2p::futures::StreamExt as _;
 use libp2p::Multiaddr;
 use multicid::Vlad;
+use multikey::{Multikey, Views};
 use provenance_log::key::key_paths::ValidatedKeyParams as _;
 use provenance_log::resolver::Resolver;
 use provenance_log::{Key as ProvenanceKey, Log, Script};
 use std::collections::HashMap;
+use std::num::NonZero;
 use std::path::PathBuf;
 
 const VLAD_STORAGE_KEY: &str = "VLAD_STORAGE_KEY";
@@ -112,11 +114,6 @@ pub fn Peer(platform_content: Element, base_path: Option<PathBuf>) -> Element {
                     } else {
                         tracing::info!("Plog records published to DHT successfully.");
                     }
-                    if let Err(e) = peer_clone_inner.record_peer_id_to_dht().await {
-                        tracing::error!("Failed to publish PeerId record: {}", e);
-                    } else {
-                        tracing::info!("PeerId record published to DHT successfully.");
-                    }
                 }
             };
 
@@ -160,12 +157,14 @@ pub fn Peer(platform_content: Element, base_path: Option<PathBuf>) -> Element {
                                     loop {
                                         match network_client.resolve_plog(&head).await {
                                             Ok(plog) => {
+                                                tracing::info!("Resolved plog from PubSub for VLAD: {}", vlad);
                                                 peer_list.with_mut(|map| {
                                                     map.insert(vlad.clone(), Some(plog))
                                                 });
                                                 break;
                                             }
                                             Err(e) => {
+                                                tracing::error!("Failed to resolve plog from PubSub for VLAD {}: {}", vlad, e);
                                                 if retries >= 3 {
                                                     tracing::error!("Failed to resolve plog after 3 retries: {}", e);
                                                     break;
@@ -270,11 +269,11 @@ pub fn Peer(platform_content: Element, base_path: Option<PathBuf>) -> Element {
             h1 { class: "text-3xl font-bold mb-2 text-green-800", "PeerPiper vaiber" }
             if let Some(_) = &*bs_peer_resource.read() {
                 div {
-                    class: "w-full max-w-4xl flex flex-col md:flex-row gap-8 justify-stretch",
+                    class: "w-full max-w-4xl flex flex-col gap-8 justify-stretch",
                     // My Plog column
                     div {
                         class: "flex flex-col gap-6 flex-1",
-                        MyPlogSection {
+                                                MyPlogSection {
                             bs_peer_signal: bs_peer_signal,
                             plog_signal: plog_signal,
                             unlock_script: unlock_script.clone(),
@@ -408,9 +407,11 @@ fn AddOperationForm(
 ) -> Element {
     let storage = use_context::<StorageProvider>();
     let mut plog_signal = use_context::<Signal<Option<Log>>>();
+    let key_manager = use_context::<Signal<Option<KeyMan>>>();
 
     let mut key = use_signal(String::new);
     let mut value = use_signal(String::new);
+    let mut rotate_key = use_signal(|| false);
     let mut error = use_signal(|| None::<String>);
     let mut submitting = use_signal(|| false);
 
@@ -432,10 +433,27 @@ fn AddOperationForm(
             s: v.clone(),
         });
 
+        let should_rotate_key = *rotate_key.read();
+        let mut new_secret_key: Option<multikey::Multikey> = None;
+
+        if should_rotate_key {
+            // Generate a new secret key
+            let generated_key = KeyMan::generate_key(&multicodec::Codec::Ed25519Priv).unwrap();
+            let public_key = generated_key.conv_view().unwrap().to_public_key().unwrap();
+            new_secret_key = Some(generated_key);
+
+            // Add an operation to update the /pubkey in the Plog with the new public key
+            additional_ops.push(OpParams::UseKey {
+                key: PubkeyParams::KEY_PATH.into(),
+                mk: public_key,
+            });
+        }
+
         if let Some(peer) = bs_peer_signal.read().as_ref() {
             let mut peer_clone = peer.clone();
             let storage = storage.clone();
             let unlock_script = unlock_script.clone();
+            let km_clone = key_manager.clone();
             let mut key = key;
             let mut value = value;
             let mut submitting = submitting;
@@ -448,8 +466,32 @@ fn AddOperationForm(
 
                 if let Err(e) = peer_clone.update(update_cfg).await {
                     tracing::error!("Failed to update plog: {}", e); // TODO: Need to show this to the user.
-                                                                     // But more importantly, why would verification fail for local plog?
                 } else {
+                    // If key rotation was requested, update the key manager's mapping
+                    if should_rotate_key {
+                        if let Some(sk) = new_secret_key {
+                            let new_fingerprint = sk
+                                .fingerprint_view()
+                                .unwrap()
+                                .fingerprint(multicodec::Codec::Sha2256)
+                                .unwrap();
+                            km_clone
+                                .read()
+                                .as_ref()
+                                .unwrap()
+                                .store_secret_key(PubkeyParams::KEY_PATH.into(), sk)
+                                .unwrap();
+                            km_clone
+                                .read()
+                                .as_ref()
+                                .unwrap()
+                                .update_path_mapping(
+                                    PubkeyParams::KEY_PATH.into(),
+                                    new_fingerprint.into(),
+                                )
+                                .unwrap();
+                        }
+                    }
                     bs_peer_signal.set(Some(peer_clone.clone()));
                 }
                 if let Some(ref plog) = peer_clone.plog() {
@@ -506,6 +548,21 @@ fn AddOperationForm(
                     r#type: "submit",
                     disabled: *submitting.read(),
                     if *submitting.read() { "Adding..." } else { "Add" }
+                }
+            }
+            div {
+                class: "flex items-center mt-2",
+                input {
+                    r#type: "checkbox",
+                    id: "rotate_key",
+                    checked: *rotate_key.read(),
+                    oninput: move |e| rotate_key.set(e.value().parse().unwrap_or(false)),
+                    class: "form-checkbox h-4 w-4 text-green-600 transition duration-150 ease-in-out bg-neutral-300",
+                }
+                label {
+                    r#for: "rotate_key",
+                    class: "ml-2 block text-sm text-gray-900",
+                    "Rotate Key"
                 }
             }
             if let Some(err) = error() {
@@ -888,7 +945,21 @@ fn PlogDisplay(plog: provenance_log::Log) -> Element {
                                 li {
                                     class: "mb-1",
                                     span { class: "font-mono text-xs mr-2", "Entry {idx}:" }
-                                    DisplayEntry { entry: entry.clone() }
+                                    DisplayEntry { entry: entry.clone(), pubkey: entry.ops().filter_map(|op| {
+                                        if let provenance_log::Op::Update(key, value) = op {
+                                            if key == &provenance_log::Key::from(bs::params::anykey::PubkeyParams::KEY_PATH) {
+                                                if let provenance_log::Value::Data(data) = value {
+                                                    multikey::Multikey::try_from(data.as_slice()).ok()
+                                                } else {
+                                                    None
+                                                }
+                                            } else {
+                                                None
+                                            }
+                                        } else {
+                                            None
+                                        }
+                                    }).last() /* Use .last() to get the most recent public key if multiple updates occur in one entry */ }
                                 }
                             },
                             Err(e) => rsx! {
@@ -906,12 +977,19 @@ fn PlogDisplay(plog: provenance_log::Log) -> Element {
 }
 
 #[component]
-fn DisplayEntry(entry: provenance_log::Entry) -> Element {
+fn DisplayEntry(entry: provenance_log::Entry, pubkey: Option<Multikey>) -> Element {
     rsx! {
         div {
             class: "flex flex-col gap-1",
             for op in entry.ops() {
                 DisplayOp { op: op.clone() }
+            }
+            if let Some(pk) = pubkey {
+                div {
+                    class: "flex gap-2 items-center text-xs",
+                    span { class: "font-mono text-gray-500", "Public Key:" }
+                    span { class: "font-mono text-blue-700 break-all", "{pk.fingerprint_view().unwrap().fingerprint(multicodec::Codec::Sha2256).unwrap():?}" }
+                }
             }
         }
     }
