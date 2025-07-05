@@ -9,7 +9,6 @@ use bs_peer::peer::{DefaultBsPeer, Libp2pEvent, PublicEvent, ResolvedPlog, Resol
 use bs_peer::platform::StartConfig;
 use bs_peer::utils::create_default_scripts;
 use bs_peer::BsPeer;
-use dioxus::events::FormEvent;
 use dioxus::logger::tracing;
 use dioxus::prelude::*;
 use libp2p::futures::StreamExt as _;
@@ -36,7 +35,7 @@ pub fn Peer(platform_content: Element, base_path: Option<PathBuf>) -> Element {
     let mut ack_list = use_signal(Vec::<Vlad>::new);
     let mut peer_list = use_signal(HashMap::<Vlad, Option<ResolvedPlog>>::new);
 
-    use_context_provider(move || peer_list.clone());
+    use_context_provider(move || peer_list);
     use_context_provider(|| connected_peers);
     use_context_provider(|| plog_signal);
 
@@ -370,7 +369,6 @@ pub fn PlogControls(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
     let plog_signal = use_context::<Signal<Option<provenance_log::Log>>>();
 
     let vlad_resource = use_resource({
-        let peer = peer.clone();
         move || async move {
             let binding = peer.read().as_ref().unwrap().plog();
             let Some(ref plog) = binding else {
@@ -572,8 +570,6 @@ fn ConnectionsPanel(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
                 dialed_peer_id.set(peer_id_str);
 
                 let peer = peer_clone;
-                let mut connection_status = connection_status.clone();
-                let mut connecting = connecting.clone();
                 spawn(async move {
                     let network_client = {
                         let peer_guard = peer.read();
@@ -710,10 +706,6 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
         let vlad_bytes: Vec<u8> = vlad_ty.clone().into();
 
         let peer = peer_clone;
-        let mut search_status = search_status.clone();
-        let mut searching = searching.clone();
-        let mut peer_vlad_input = peer_vlad_input.clone();
-        let mut peer_list = peer_list.clone();
         spawn(async move {
             let network_client = {
                 let peer_guard = peer.read();

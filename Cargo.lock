@@ -837,6 +837,7 @@ dependencies = [
  "bon",
  "bs-traits",
  "bs-wallets",
+ "comrade",
  "multicid",
  "multicodec",
  "multihash 1.0.0",
