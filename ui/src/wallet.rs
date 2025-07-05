@@ -49,7 +49,7 @@ pub fn WalletComponent(content: Element) -> Element {
 
     // Try to load existing seed from storage
     let mut encrypted_seed = use_signal(|| {
-        if storage.exists(STORAGE_KEY) {
+        if storage.exists(STORAGE_KEY) && !cfg!(feature = "dev") {
             storage.load(STORAGE_KEY).ok()
         } else {
             None

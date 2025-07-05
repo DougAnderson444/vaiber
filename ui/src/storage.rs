@@ -1,5 +1,4 @@
 //! This module defines the `WalletStorage` trait for managing wallet data.
-use dioxus::prelude::*;
 use std::sync::Arc;
 
 pub trait WalletStorage: Send + Sync {

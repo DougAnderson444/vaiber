@@ -20,7 +20,6 @@ use provenance_log::resolver::Resolver;
 use provenance_log::{Key as ProvenanceKey, Log, Script};
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::sync::Arc;
 
 const VLAD_STORAGE_KEY: &str = "VLAD_STORAGE_KEY";
 
@@ -72,7 +71,7 @@ pub fn Peer(platform_content: Element, base_path: Option<PathBuf>) -> Element {
             .await
             .unwrap();
 
-            let plog_loaded = if storage.exists(VLAD_STORAGE_KEY) {
+            let plog_loaded = if storage.exists(VLAD_STORAGE_KEY) && !cfg!(feature = "dev") {
                 tracing::info!("Loading existing Plog from storage...");
                 if let Ok(plog_data) = storage.load(VLAD_STORAGE_KEY) {
                     tracing::info!("Plog loaded from storage successfully.");
@@ -107,13 +106,18 @@ pub fn Peer(platform_content: Element, base_path: Option<PathBuf>) -> Element {
 
             let peer_clone = peer.clone();
             let update_dht = move || {
-                let peer_clone_inner = peer_clone.clone();
+                let mut peer_clone_inner = peer_clone.clone();
                 async move {
                     if let Err(e) = peer_clone_inner.record_plog_to_dht().await {
-                        tracing::error!("Failed to publish records: {}", e);
-                        return;
+                        tracing::error!("Failed to publish Plog records: {}", e);
+                    } else {
+                        tracing::info!("Plog records published to DHT successfully.");
                     }
-                    tracing::info!("Plog records published to DHT successfully.");
+                    if let Err(e) = peer_clone_inner.record_peer_id_to_dht().await {
+                        tracing::error!("Failed to publish PeerId record: {}", e);
+                    } else {
+                        tracing::info!("PeerId record published to DHT successfully.");
+                    }
                 }
             };
 
@@ -317,7 +321,6 @@ fn MyPlogSection(
             PlogControls { peer: bs_peer_signal }
             AddOperationForm {
                 bs_peer_signal: bs_peer_signal,
-                plog_signal: plog_signal,
                 unlock_script: unlock_script,
             }
             if let Some(addr) = peer_address {
@@ -403,18 +406,18 @@ pub fn PlogControls(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
 #[component]
 fn AddOperationForm(
     bs_peer_signal: Signal<Option<DefaultBsPeer<KeyMan>>>,
-    plog_signal: Signal<Option<Log>>,
     unlock_script: String,
 ) -> Element {
     let storage = use_context::<StorageProvider>();
+    let mut plog_signal = use_context::<Signal<Option<Log>>>();
 
     let mut key = use_signal(String::new);
     let mut value = use_signal(String::new);
     let mut error = use_signal(|| None::<String>);
     let mut submitting = use_signal(|| false);
 
-    let handle_submit = move |e: FormEvent| {
-        e.prevent_default();
+    let handle_submit = move |_| {
+        // e.prevent_default();
         submitting.set(true);
         let k = key().trim().to_string();
         let v = value().trim().to_string();
@@ -434,11 +437,10 @@ fn AddOperationForm(
         if let Some(peer) = bs_peer_signal.read().as_ref() {
             let mut peer_clone = peer.clone();
             let storage = storage.clone();
-            let mut plog_signal = plog_signal.clone();
             let unlock_script = unlock_script.clone();
-            let mut key = key.clone();
-            let mut value = value.clone();
-            let mut submitting = submitting.clone();
+            let mut key = key;
+            let mut value = value;
+            let mut submitting = submitting;
             spawn(async move {
                 let update_cfg = bs::update::Config::builder()
                     .unlock(Script::Code(provenance_log::Key::default(), unlock_script))
@@ -447,7 +449,10 @@ fn AddOperationForm(
                     .build();
 
                 if let Err(e) = peer_clone.update(update_cfg).await {
-                    tracing::error!("Failed to update plog: {}", e);
+                    tracing::error!("Failed to update plog: {}", e); // TODO: Need to show this to the user.
+                                                                     // But more importantly, why would verification fail for local plog?
+                } else {
+                    bs_peer_signal.set(Some(peer_clone.clone()));
                 }
                 if let Some(ref plog) = peer_clone.plog() {
                     let plog_bytes: Vec<u8> = plog.clone().into();
@@ -742,7 +747,25 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
                 searching.set(false);
                 return;
             }
-            let Ok(cid_bytes) = network_client.get_record(vlad_bytes).await else {
+            let cid_bytes = {
+                let mut retries = 0;
+                loop {
+                    match network_client.get_record(vlad_bytes.clone()).await {
+                        Ok(bytes) => break Ok(bytes),
+                        Err(e) => {
+                            if retries >= 5 {
+                                // Increased retries for DHT propagation
+                                tracing::error!("Failed to get record after 5 retries: {}", e);
+                                break Err(e);
+                            }
+                            retries += 1;
+                            tokio::time::sleep(std::time::Duration::from_secs(2u64.pow(retries)))
+                                .await;
+                        }
+                    }
+                }
+            };
+            let Ok(cid_bytes) = cid_bytes else {
                 search_status.set(Some(format!("Could not find peer with VLAD: {}", vlad)));
                 searching.set(false);
                 return;
@@ -799,7 +822,7 @@ fn PeerList(peer: Signal<Option<DefaultBsPeer<KeyMan>>>) -> Element {
             }
             if let Some(status) = search_status() {
                 div {
-                    class: "p-2 bg-gray-100 rounded mb-2 text-xs",
+                    class: "p-2 bg-red-100 text-red-800 rounded mb-2 text-xs",
                     "Search Status: {status}"
                 }
             }
